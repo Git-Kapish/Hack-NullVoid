@@ -286,7 +286,7 @@ export default function KnowledgePage() {
                   AI Grounded Response
                 </span>
                 {(() => {
-                  const badge = getConfidenceBadge(result.confidence);
+                  const badge = getConfidenceBadge(result.confidence || 'LOW');
                   return (
                     <span
                       style={{
@@ -321,45 +321,50 @@ export default function KnowledgePage() {
 
               {/* Answer Content */}
               <div style={{ fontSize: '1.15rem', lineHeight: 1.6, color: '#f1f5f9', marginBottom: '2rem', padding: '1rem', backgroundColor: '#0f172a', borderRadius: '10px', borderLeft: '4px solid #38bdf8' }}>
-                {result.answer}
+                {result.answer || "The policy documents do not support an answer."}
               </div>
 
               {/* Sources Attribution */}
-              <div>
-                <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>
-                  Verified Citations ({result.sources.length} sources):
-                </h4>
-                {result.sources.length === 0 ? (
-                  <p style={{ color: '#64748b', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
-                    No supporting policy document cited (safe abstention outcome).
-                  </p>
-                ) : (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
-                    {result.sources.map((src, i) => (
-                      <div
-                        key={i}
-                        style={{
-                          backgroundColor: '#0f172a',
-                          border: '1px solid #334155',
-                          borderRadius: '8px',
-                          padding: '0.6rem 1rem',
-                          fontSize: '0.85rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <span style={{ color: '#38bdf8' }}>📄</span>
-                        <strong style={{ color: '#e2e8f0' }}>{src.document}</strong>
-                        <span style={{ color: '#64748b' }}>•</span>
-                        <span style={{ color: '#cbd5e1' }}>{src.section}</span>
-                        <span style={{ color: '#64748b' }}>•</span>
-                        <span style={{ color: '#a78bfa', fontWeight: 600 }}>v{src.version}</span>
+              {(() => {
+                const verifiedSources = Array.isArray(result.sources) ? result.sources : [];
+                return (
+                  <div>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.75rem 0' }}>
+                      Verified Citations ({verifiedSources.length} sources):
+                    </h4>
+                    {verifiedSources.length === 0 ? (
+                      <p style={{ color: '#64748b', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
+                        No supporting policy document cited (safe abstention outcome).
+                      </p>
+                    ) : (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        {verifiedSources.map((src, i) => (
+                          <div
+                            key={i}
+                            style={{
+                              backgroundColor: '#0f172a',
+                              border: '1px solid #334155',
+                              borderRadius: '8px',
+                              padding: '0.6rem 1rem',
+                              fontSize: '0.85rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                            }}
+                          >
+                            <span style={{ color: '#38bdf8' }}>📄</span>
+                            <strong style={{ color: '#e2e8f0' }}>{src.document || 'Policy Document'}</strong>
+                            <span style={{ color: '#64748b' }}>•</span>
+                            <span style={{ color: '#cbd5e1' }}>{src.section || 'General'}</span>
+                            <span style={{ color: '#64748b' }}>•</span>
+                            <span style={{ color: '#a78bfa', fontWeight: 600 }}>v{src.version || '2026.1'}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
           )}
         </div>

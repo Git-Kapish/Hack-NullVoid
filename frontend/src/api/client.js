@@ -301,6 +301,49 @@ function fallbackMockHandler(endpoint, options = {}) {
     };
   }
 
+  // Knowledge Assistant RAG fallback
+  if (pathname === '/knowledge/ask' && method === 'POST') {
+    const body = typeof options.body === 'string' ? JSON.parse(options.body) : (options.body || {});
+    const q = (body.question || '').toLowerCase();
+    if (q.includes('shipping') || q.includes('delivery')) {
+      return {
+        answer: "Shipping estimates are calculated from the time of dispatch, rather than when an item is added to the cart, and exclude time an order spends in payment review or warehouse processing. Delivery dates are estimated and not guaranteed.",
+        confidence: "HIGH",
+        sources: [
+          { document: "Shipping and Delivery Policy", section: "Delivery estimates and shipping charges", version: "2026.1" },
+          { document: "Membership Benefits Policy", section: "Prime shipping benefits", version: "2026.1" }
+        ],
+        followUpRequired: false
+      };
+    } else if (q.includes('laptop') || q.includes('opened')) {
+      return {
+        answer: "Opened laptops can be returned within 7 days of delivery provided there is no customer-induced damage and original accessories are included.",
+        confidence: "HIGH",
+        sources: [
+          { document: "Electronics Return Exceptions", section: "Electronics return condition", version: "2026.1" },
+          { document: "Returns and Exchanges Policy", section: "Eligibility and return process", version: "2026.1" }
+        ],
+        followUpRequired: false
+      };
+    } else if (q.includes('warranty') || q.includes('smartphone')) {
+      return {
+        answer: "Smartphones include a 12-month manufacturer limited warranty covering hardware defects. Liquid damage, unauthorized repairs, and cosmetic wear are excluded.",
+        confidence: "HIGH",
+        sources: [
+          { document: "Smartphone Warranty Policy", section: "Limited warranty scope", version: "2026.1" }
+        ],
+        followUpRequired: false
+      };
+    } else {
+      return {
+        answer: "The policy documents do not support an answer.",
+        confidence: "LOW",
+        sources: [],
+        followUpRequired: true
+      };
+    }
+  }
+
   // Default fallback
   return { status: 'ok', message: 'Simulated response' };
 }
@@ -320,9 +363,11 @@ export async function request(endpoint, options = {}) {
 
   const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
 
-  // Attempt real backend with a 1500ms timeout; if it fails or returns 404/500, fallback to mock data
+  // Allow adequate timeout for generative AI & vector search (25s) vs regular requests (8s)
+  const isAiOrKnowledge = endpoint.includes('/knowledge') || endpoint.includes('/ai');
+  const timeoutMs = options.timeout || (isAiOrKnowledge ? 25000 : 8000);
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 1500);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(url, {
