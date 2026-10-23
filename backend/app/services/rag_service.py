@@ -3,7 +3,7 @@ import math
 from datetime import date, datetime, timezone
 from typing import List, Dict, Any, Optional, Tuple
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_, and_, func
 
 from app.core.config import settings
@@ -282,7 +282,7 @@ class RAGService:
                 )
             )
 
-        query = query.filter(and_(*filters))
+        query = query.filter(and_(*filters)).options(joinedload(KnowledgeChunk.document))
 
         # Check if database dialect supports pgvector cosine distance directly
         is_postgres = db.bind is not None and db.bind.dialect.name == "postgresql"
@@ -302,6 +302,7 @@ class RAGService:
                 return scored_chunks
             except Exception as e:
                 logger.warning(f"Postgres vector query fallback to python scoring: {e}")
+                db.rollback()
 
         # Universal fallback (exact cosine similarity in memory across eligible filtered chunks)
         candidates = query.all()
@@ -425,7 +426,12 @@ class RAGService:
 
         # 6. Database Source Attribution: Reconstruct sources directly from verified database records
         used_ids = grounded_res.used_chunk_ids or [c.id for c, _ in retrieved[:2]]
-        cited_chunks = db.query(KnowledgeChunk).filter(KnowledgeChunk.id.in_(used_ids)).all()
+        cited_chunks = (
+            db.query(KnowledgeChunk)
+            .options(joinedload(KnowledgeChunk.document))
+            .filter(KnowledgeChunk.id.in_(used_ids))
+            .all()
+        )
 
         # If used_chunk_ids didn't match anything in DB, fall back to top retrieved chunk
         if not cited_chunks and retrieved:

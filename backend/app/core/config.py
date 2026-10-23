@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     # Generative AI (Gemini API) & RAG Configuration
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-3.8-flash"
-    EMBEDDING_MODEL: str = "text-embedding-004"
+    EMBEDDING_MODEL: str = "gemini-embedding-001"
     EMBED_DIM: int = 768
     USE_FAKE_LLM: bool = False
     RAG_SIMILARITY_THRESHOLD_HIGH: float = 0.40

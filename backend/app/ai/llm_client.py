@@ -143,7 +143,9 @@ class FakeLLM(LLMClient):
             return "According to the Laptop Return Policy, opened laptops may be returned within 7 days of delivery provided there is no customer-induced damage."
         return "Based on our records and verified catalog specifications, this product meets your technical and budget requirements."
 
-    def embed(self, texts: List[str]) -> List[List[float]]:
+    def embed(self, texts: Any) -> List[List[float]]:
+        if isinstance(texts, str):
+            texts = [texts]
         # Deterministic subword/prefix n-gram hash vector normalized to unit sphere
         stopwords = {
             "what", "is", "the", "for", "an", "a", "in", "on", "can", "be", "of",
@@ -192,19 +194,39 @@ class GeminiLLMClient(LLMClient):
             logger.error(f"Failed to initialize google-genai client: {e}")
             self.client = None
 
+    def _generate_with_fallback(self, prompt: str, schema: Optional[Type[T]] = None, temperature: float = 0.1) -> Any:
+        from google.genai import types
+        # Primary model followed by high-availability fallbacks
+        models = [settings.GEMINI_MODEL, "gemini-3.5-flash", "gemini-3.5-flash-lite"]
+        seen = set()
+        models = [m for m in models if not (m in seen or seen.add(m))]
+
+        last_err = None
+        for m in models:
+            try:
+                cfg_kwargs = {
+                    "temperature": temperature,
+                    "http_options": types.HttpOptions(timeout=12000),
+                }
+                if schema:
+                    cfg_kwargs["response_mime_type"] = "application/json"
+                    cfg_kwargs["response_schema"] = schema
+                return self.client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(**cfg_kwargs),
+                )
+            except Exception as e:
+                logger.warning(f"Model {m} generate_content failed ({e}), attempting next fallback...")
+                last_err = e
+        raise last_err
+
     def extract_structured(self, schema: Type[T], system_prompt: str, user_prompt: str) -> T:
         if not self.client:
             return FakeLLM().extract_structured(schema, system_prompt, user_prompt)
         try:
-            response = self.client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=f"System: {system_prompt}\nUser: {user_prompt}",
-                config={
-                    "response_mime_type": "application/json",
-                    "response_schema": schema,
-                    "temperature": 0.1,
-                },
-            )
+            prompt = f"System: {system_prompt}\nUser: {user_prompt}"
+            response = self._generate_with_fallback(prompt, schema=schema, temperature=0.1)
             return schema.model_validate_json(response.text)
         except Exception as e:
             logger.warning(f"Gemini structured extraction failed ({e}), falling back to FakeLLM")
@@ -214,17 +236,16 @@ class GeminiLLMClient(LLMClient):
         if not self.client:
             return FakeLLM().generate_text(system_prompt, user_prompt)
         try:
-            response = self.client.models.generate_content(
-                model=settings.GEMINI_MODEL,
-                contents=f"System: {system_prompt}\nUser: {user_prompt}",
-                config={"temperature": 0.2},
-            )
+            prompt = f"System: {system_prompt}\nUser: {user_prompt}"
+            response = self._generate_with_fallback(prompt, schema=None, temperature=0.2)
             return response.text or ""
         except Exception as e:
             logger.warning(f"Gemini text generation failed ({e}), falling back to FakeLLM")
             return FakeLLM().generate_text(system_prompt, user_prompt)
 
-    def embed(self, texts: List[str]) -> List[List[float]]:
+    def embed(self, texts: Any) -> List[List[float]]:
+        if isinstance(texts, str):
+            texts = [texts]
         if not self.client:
             return FakeLLM().embed(texts)
         try:
@@ -233,8 +254,14 @@ class GeminiLLMClient(LLMClient):
                 result = self.client.models.embed_content(
                     model=settings.EMBEDDING_MODEL,
                     contents=text,
+                    config={"output_dimensionality": settings.EMBED_DIM},
                 )
-                embeddings.append(result.embedding.values)
+                if hasattr(result, "embeddings") and result.embeddings:
+                    embeddings.append(result.embeddings[0].values)
+                elif hasattr(result, "embedding") and hasattr(result.embedding, "values"):
+                    embeddings.append(result.embedding.values)
+                else:
+                    embeddings.append(FakeLLM().embed([text])[0])
             return embeddings
         except Exception as e:
             logger.warning(f"Gemini embedding failed ({e}), falling back to FakeLLM")
