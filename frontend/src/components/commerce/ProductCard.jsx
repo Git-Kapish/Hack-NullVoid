@@ -4,6 +4,7 @@ import { Heart, ShoppingCart, Star, CheckSquare, Square } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { useCartWishlist } from '../../context/CartWishlistContext';
 import { useCompare } from '../../context/CompareContext';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../../utils/productUtils';
 
 export function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -45,9 +46,13 @@ export function ProductCard({ product }) {
         marginBottom: '0.75rem'
       }}>
         <img
-          src={product.images?.[0] || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80'}
+          src={getProductImage(product)}
           alt={product.name}
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+          }}
           style={{
             position: 'absolute',
             top: 0,

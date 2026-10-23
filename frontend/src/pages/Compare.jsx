@@ -6,6 +6,7 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
 import { Layers, X, ShoppingCart, Plus, Check, ArrowLeft } from 'lucide-react';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
 
 export function Compare() {
   const navigate = useNavigate();
@@ -127,8 +128,12 @@ export function Compare() {
 
                     <div style={{ width: '100%', height: '120px', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
                       <img
-                        src={product.images?.[0]}
+                        src={getProductImage(product)}
                         alt={product.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                        }}
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       />
                     </div>

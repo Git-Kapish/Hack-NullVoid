@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Layers, ArrowRight } from 'lucide-react';
 import { useCompare } from '../../context/CompareContext';
 import { Button } from '../common/Button';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../../utils/productUtils';
 
 export function CompareTray() {
   const navigate = useNavigate();
@@ -35,8 +36,12 @@ export function CompareTray() {
             title={item.name}
           >
             <img
-              src={item.images?.[0]}
+              src={getProductImage(item)}
               alt={item.name}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+              }}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
             <button

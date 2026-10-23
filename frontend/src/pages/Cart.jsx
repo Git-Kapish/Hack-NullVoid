@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
 import { ShoppingCart, Trash2, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
 
 export function Cart() {
   const navigate = useNavigate();
@@ -81,8 +82,12 @@ export function Cart() {
                   backgroundColor: 'var(--color-surface-2)'
                 }}>
                   <img
-                    src={product.images?.[0]}
+                    src={getProductImage(product)}
                     alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                    }}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 </div>

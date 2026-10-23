@@ -5,6 +5,7 @@ import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { EmptyState } from '../components/common/EmptyState';
 import { Package, Truck, ArrowRight, Calendar } from 'lucide-react';
+import { FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
 
 export function Orders() {
   const navigate = useNavigate();
@@ -110,7 +111,15 @@ export function Orders() {
                       }}
                       title={item.name}
                     >
-                      <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={item.image || FALLBACK_PRODUCT_IMAGE}
+                        alt={item.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     </div>
                   ))}
                   <div>

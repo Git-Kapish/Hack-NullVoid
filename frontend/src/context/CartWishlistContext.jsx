@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
 import { api } from '../api/client';
+import { getProductImage } from '../utils/productUtils';
 
 const CartWishlistContext = createContext(null);
 
@@ -121,7 +122,7 @@ export function CartWishlistProvider({ children }) {
         name: item.product.name,
         price: item.product.price,
         quantity: item.quantity,
-        image: item.product.images?.[0]
+        image: getProductImage(item.product)
       })),
       total_amount: parseFloat(total.toFixed(2))
     };

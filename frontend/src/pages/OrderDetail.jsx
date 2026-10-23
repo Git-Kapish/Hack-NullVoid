@@ -5,6 +5,7 @@ import { ShipmentTimeline } from '../components/commerce/ShipmentTimeline';
 import { Badge } from '../components/common/Badge';
 import { Button } from '../components/common/Button';
 import { ArrowLeft, LifeBuoy, Package } from 'lucide-react';
+import { FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
 
 export function OrderDetail() {
   const { id } = useParams();
@@ -94,7 +95,15 @@ export function OrderDetail() {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', backgroundColor: 'var(--color-surface-2)' }}>
-                  <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img
+                    src={item.image || FALLBACK_PRODUCT_IMAGE}
+                    alt={item.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 </div>
                 <div>
                   <Link to={`/products/${item.product_id}`} style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--color-text)' }}>

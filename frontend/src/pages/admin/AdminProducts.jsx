@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Plus, Edit2, Check, X, Search, ShieldCheck } from 'lucide-react';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../../utils/productUtils';
 
 export function AdminProducts() {
   const { addToast } = useToast();
@@ -139,7 +140,15 @@ export function AdminProducts() {
                 <tr key={p.id}>
                   <td>
                     <div style={{ width: '40px', height: '40px', borderRadius: '4px', overflow: 'hidden', backgroundColor: 'var(--color-surface-2)' }}>
-                      <img src={p.images?.[0]} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img
+                        src={getProductImage(p)}
+                        alt={p.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
                     </div>
                   </td>
                   <td style={{ fontWeight: 600 }}>{p.name}</td>

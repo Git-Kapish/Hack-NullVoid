@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   CheckCircle2
 } from 'lucide-react';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
 
 export function ProductDetail() {
   const { id } = useParams();
@@ -115,8 +116,12 @@ export function ProductDetail() {
             border: '1px solid var(--color-border)'
           }}>
             <img
-              src={product.images?.[selectedImage] || product.images?.[0]}
+              src={getProductImage(product, selectedImage)}
               alt={product.name}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+              }}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -131,22 +136,33 @@ export function ProductDetail() {
           {/* Thumbnails */}
           {product.images && product.images.length > 1 && (
             <div style={{ display: 'flex', gap: '0.75rem' }}>
-              {product.images.map((img, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: 'var(--radius-sm)',
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    border: selectedImage === idx ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'
-                  }}
-                >
-                  <img src={img} alt="thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              ))}
+              {product.images.map((img, idx) => {
+                const thumbUrl = typeof img === 'object' && img?.url ? img.url : (typeof img === 'string' ? img : FALLBACK_PRODUCT_IMAGE);
+                return (
+                  <div
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    style={{
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: 'var(--radius-sm)',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: selectedImage === idx ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'
+                    }}
+                  >
+                    <img
+                      src={thumbUrl}
+                      alt="thumbnail"
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

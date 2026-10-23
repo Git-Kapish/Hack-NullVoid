@@ -5,6 +5,7 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
 import { Heart, ShoppingCart, Trash2, ArrowRight } from 'lucide-react';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
 
 export function Wishlist() {
   const navigate = useNavigate();
@@ -62,8 +63,12 @@ export function Wishlist() {
                   marginBottom: '0.75rem'
                 }}>
                   <img
-                    src={product.images?.[0]}
+                    src={getProductImage(product)}
                     alt={product.name}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                    }}
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   <button

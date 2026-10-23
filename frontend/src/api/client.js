@@ -7,6 +7,7 @@ import {
   SAMPLE_AI_DECISION_LOGS,
   DEMO_PERSONAS
 } from '../data/mockData';
+import { normalizeProduct } from '../utils/productUtils';
 
 const BASE_URL = '/api/v1';
 
@@ -398,7 +399,15 @@ export async function request(endpoint, options = {}) {
 
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+      const data = await response.json();
+      if (data && Array.isArray(data.items)) {
+        data.items = data.items.map(normalizeProduct);
+      } else if (data && data.id && (data.sku || data.price !== undefined)) {
+        return normalizeProduct(data);
+      } else if (data && Array.isArray(data.products)) {
+        data.products = data.products.map(normalizeProduct);
+      }
+      return data;
     }
     return await response.text();
   } catch (error) {
