@@ -24,6 +24,7 @@ import { Support } from './pages/Support';
 import { Preferences } from './pages/Preferences';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminAudit } from './pages/admin/AdminAudit';
+import KnowledgePage from './pages/KnowledgePage';
 
 export function App() {
   return (
@@ -48,7 +49,12 @@ export function App() {
                     <Route path="/orders/:id" element={<OrderDetail />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/account/preferences" element={<Preferences />} />
-                    
+
+                    {/* Policy & Knowledge Assistant (RAG) */}
+                    <Route path="/policies" element={<KnowledgePage />} />
+                    <Route path="/knowledge" element={<KnowledgePage />} />
+                    <Route path="/admin/knowledge" element={<KnowledgePage />} />
+
                     {/* Admin routes */}
                     <Route path="/admin/products" element={<AdminProducts />} />
                     <Route path="/admin/audit" element={<AdminAudit />} />

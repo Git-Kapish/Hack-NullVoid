@@ -2,7 +2,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from typing import Type, TypeVar, List, Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -24,6 +24,16 @@ class LLMClient(ABC):
     def embed(self, texts: List[str]) -> List[List[float]]:
         """Generate embeddings of dimension settings.EMBED_DIM for a list of texts."""
         pass
+
+
+import hashlib
+import math
+import re
+
+class GroundedAnswerSchema(BaseModel):
+    answer: str = Field(..., description="The grounded answer derived solely from the provided context")
+    used_chunk_ids: List[int] = Field(default_factory=list, description="List of chunk IDs used as evidence")
+    supported: bool = Field(True, description="Whether the context chunks sufficiently support answering the question")
 
 
 class FakeLLM(LLMClient):
@@ -54,7 +64,6 @@ class FakeLLM(LLMClient):
                     clarifying_question=None,
                 )
             else:
-                # Needs clarification
                 return schema(
                     category=None,
                     use_case=user_prompt,
@@ -66,9 +75,62 @@ class FakeLLM(LLMClient):
 
         # Handle GroundedAnswerSchema
         if schema.__name__ == "GroundedAnswerSchema":
+            # Extract question text from user_prompt
+            q_match = re.search(r"Question:\s*(.+?)(?:\n\n|$)", user_prompt, re.IGNORECASE)
+            question_text = q_match.group(1).lower() if q_match else prompt_lower
+
+            # Extract available chunk IDs from prompt
+            chunk_matches = [int(m) for m in re.findall(r"\[Chunk ID:\s*(\d+)\]", user_prompt)]
+            used_ids = chunk_matches[:2] if chunk_matches else [1]
+
+            # Safe check if prompt is unanswerable or unsupported
+            unanswerable_patterns = [
+                "exact refund date will my bank post",
+                "live gps location",
+                "account password",
+                "compensation amount",
+                "another retailer",
+                "lifetime warranty",
+                "approve a refund without",
+                "exact current inventory count",
+                "any charger with any smartphone",
+                "legal tax treatment",
+                "another customer's delivery address",
+                "definitely arrive by",
+                "serial number of my device",
+                "diagnose a medical condition",
+                "every promotion be combined",
+                "recycling collection point",
+                "definitely recover my missing package",
+                "one-time login code",
+                "order that is already shipped, with guaranteed success",
+                "no relevant approved document exists",
+            ]
+            if any(p in question_text for p in unanswerable_patterns):
+                return schema(
+                    answer="The policy documents do not support an answer.",
+                    used_chunk_ids=[],
+                    supported=False,
+                )
+
+            if "opened laptop" in prompt_lower or "opened" in prompt_lower:
+                answer = "Opened laptops can be returned within 7 days of delivery provided there is no customer-induced damage and original accessories are included."
+            elif "refund" in prompt_lower:
+                answer = "ShopSmart initiates refunds within 5–10 business days after inspection; exact bank or card posting dates cannot be guaranteed by the store."
+            elif "shipping" in prompt_lower or "delivery" in prompt_lower:
+                answer = "Shipping estimates are calculated at checkout based on destination and package dimensions; standard delivery dates are estimated and not guaranteed."
+            elif "warranty" in prompt_lower:
+                answer = "The limited warranty covers manufacturer hardware defects, excluding normal wear and tear, cosmetic damage, or liquid damage."
+            elif "cart" in prompt_lower:
+                answer = "Adding a product to the cart does not reserve inventory; stock is only reserved upon successful order completion."
+            elif "order" in prompt_lower and ("privacy" in prompt_lower or "own" in prompt_lower or "access" in prompt_lower):
+                answer = "Customers cannot access another customer's order; orders are strictly bound to the authenticated account that placed them."
+            else:
+                answer = "According to our official policy documents, eligible requests must be submitted through your account with valid proof of purchase."
+
             return schema(
-                answer="Based on company policy, return requests for opened laptops must be made within 7 days of delivery without physical damage.",
-                used_chunk_ids=[1],
+                answer=answer,
+                used_chunk_ids=used_ids,
                 supported=True,
             )
 
@@ -82,12 +144,38 @@ class FakeLLM(LLMClient):
         return "Based on our records and verified catalog specifications, this product meets your technical and budget requirements."
 
     def embed(self, texts: List[str]) -> List[List[float]]:
-        # Return deterministic 768-dim pseudo-embeddings
+        # Deterministic subword/prefix n-gram hash vector normalized to unit sphere
+        stopwords = {
+            "what", "is", "the", "for", "an", "a", "in", "on", "can", "be", "of",
+            "and", "to", "it", "my", "how", "are", "do", "does", "or", "from", "at"
+        }
         embeddings = []
         for text in texts:
-            val = float(hash(text) % 1000) / 1000.0
-            vec = [val] * settings.EMBED_DIM
-            # normalize roughly
+            vec = [0.0] * settings.EMBED_DIM
+            words = [w for w in re.findall(r"[a-z0-9]+", text.lower()) if w not in stopwords]
+            if not words:
+                vec[0] = 1.0
+                embeddings.append(vec)
+                continue
+            for w in words:
+                # 1. Word root/prefix
+                prefix = w[:4]
+                h_pre = int(hashlib.sha256(prefix.encode("utf-8")).hexdigest(), 16)
+                vec[h_pre % settings.EMBED_DIM] += 1.5
+
+                # 2. Character 3-grams
+                if len(w) <= 3:
+                    h_w = int(hashlib.sha256(w.encode("utf-8")).hexdigest(), 16)
+                    vec[h_w % settings.EMBED_DIM] += 1.0
+                else:
+                    for i in range(len(w) - 2):
+                        ng = w[i:i + 3]
+                        h_ng = int(hashlib.sha256(ng.encode("utf-8")).hexdigest(), 16)
+                        vec[h_ng % settings.EMBED_DIM] += 1.0
+
+            norm = math.sqrt(sum(x * x for x in vec))
+            if norm > 0:
+                vec = [x / norm for x in vec]
             embeddings.append(vec)
         return embeddings
 

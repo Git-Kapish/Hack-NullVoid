@@ -1,0 +1,22 @@
+# Invoices and Receipts Policy
+
+- document_id: POL-BIL-001
+- title: Invoices and Receipts Policy
+- document_type: BILLING
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Billing
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Order receipts and invoice corrections
+
+## Order receipts and invoice corrections
+
+An order receipt is available from Order History after the order is confirmed. Customers should check the billing details and itemized totals shown in the order record. Where business invoice fields are required, enter them accurately during checkout before the invoice is finalized.
+
+Eligible invoice corrections may be reviewed by support, but changes to tax documents are subject to verification and applicable requirements. The assistant must not fabricate an invoice number, tax amount, or billing address. Those values must come from the order or invoice record.
+
+For a missing receipt, confirm that the customer is signed in to the account that placed the order and that the order is confirmed. If the receipt remains unavailable, create a support ticket using the order reference without requesting payment-card secrets.

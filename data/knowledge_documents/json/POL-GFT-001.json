@@ -1,0 +1,20 @@
+{
+  "document_id": "POL-GFT-001",
+  "title": "Gift Card Safety and Redemption Policy",
+  "document_type": "GIFT_CARDS",
+  "version": "2026.1",
+  "effective_date": "2026-01-01",
+  "region": "US",
+  "category": "Payments",
+  "membership_tier": null,
+  "status": "APPROVED",
+  "uploaded_by": "USR001",
+  "data_status": "SYNTHETIC_DEMO",
+  "section": "Gift card use",
+  "sections": [
+    {
+      "section_title": "Gift card use",
+      "content": "Gift cards may be redeemed in the designated checkout field according to the terms shown at purchase. Treat gift card codes like cash. Do not share a code with an unverified person, and do not use gift cards to pay a person who claims to be support or to verify account identity.\n\nCustomers should check the balance and redemption result through the official ShopSmart interface. A failed redemption may result from a typing error, an exhausted balance, a region restriction, or a product-specific limitation. Support may investigate using safe transaction references but should not request a gift card code in an unsecured ticket.\n\nThe assistant must not repeat gift card secrets in its answer or logs. This policy does not guarantee that every gift card is refundable or transferable; consult the terms supplied with the specific card."
+    }
+  ]
+}

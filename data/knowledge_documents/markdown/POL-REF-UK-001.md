@@ -1,0 +1,20 @@
+# UK Refund Process
+
+- document_id: POL-REF-UK-001
+- title: UK Refund Process
+- document_type: REFUNDS
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: UK
+- category: Refunds
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: UK refund processing
+
+## UK refund processing
+
+For an approved return associated with a UK order, ShopSmart initiates the refund after receipt and any required inspection according to the applicable order terms. The payment provider may require additional time to display the credit. The exact posting date is not guaranteed by this synthetic policy.
+
+Use the UK-specific policy and order record when responding to UK customers. If the corpus does not support a requested statutory deadline or exception, do not substitute general model knowledge; retrieve an approved source or refer the customer to the appropriate policy team.

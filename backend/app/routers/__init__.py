@@ -8,6 +8,7 @@ from app.routers.support import router as support_router
 from app.routers.dashboard import router as dashboard_router
 from app.routers.admin_products import router as admin_products_router
 from app.routers.ai import router as ai_router
+from app.routers.knowledge import router as knowledge_router
 
 __all__ = [
     "auth_router",
@@ -20,4 +21,5 @@ __all__ = [
     "dashboard_router",
     "admin_products_router",
     "ai_router",
+    "knowledge_router",
 ]

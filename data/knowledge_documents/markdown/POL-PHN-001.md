@@ -1,0 +1,22 @@
+# Smartphone Setup and Battery Care Manual
+
+- document_id: POL-PHN-001
+- title: Smartphone Setup and Battery Care Manual
+- document_type: PRODUCT_MANUAL
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Product Manuals
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Charging and battery safety
+
+## Charging and battery safety
+
+Use a charger and cable that meet the smartphone manufacturer's specifications. Keep the charging port dry and free of debris, and do not force a connector into the port. Battery capacity naturally changes with use and age; charging speed and battery life vary by model, temperature, settings, and workload.
+
+Do not use or charge a swollen, punctured, or unusually hot battery. Stop charging and seek authorized service if the device shows signs of battery damage. Water-resistance ratings, where present, are model-specific and may decrease through wear, impact, or repair.
+
+Before transferring or resetting a phone, back up important data using a trusted method and confirm that account recovery details are available. This guide does not guarantee data recovery after device failure or reset.

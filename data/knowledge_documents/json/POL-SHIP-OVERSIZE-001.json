@@ -1,0 +1,20 @@
+{
+  "document_id": "POL-SHIP-OVERSIZE-001",
+  "title": "Oversized Item Delivery Terms",
+  "document_type": "SHIPPING",
+  "version": "2026.1",
+  "effective_date": "2026-01-01",
+  "region": "US",
+  "category": "Shipping",
+  "membership_tier": null,
+  "status": "APPROVED",
+  "uploaded_by": "USR001",
+  "data_status": "SYNTHETIC_DEMO",
+  "section": "Oversized and special-handling items",
+  "sections": [
+    {
+      "section_title": "Oversized and special-handling items",
+      "content": "Oversized or special-handling products may have separate shipping charges, delivery windows, appointment requirements, or delivery-location limits. The product page and checkout summary must show the applicable terms before the order is placed. Standard shipping benefits do not automatically waive special-handling charges.\n\nCustomers should ensure that the delivery address can accommodate the item and that any access requirements are understood. The carrier may contact the customer when an appointment is needed. The assistant should not guarantee room-of-choice placement, installation, or removal of an old item unless those services are explicitly included in the order."
+    }
+  ]
+}

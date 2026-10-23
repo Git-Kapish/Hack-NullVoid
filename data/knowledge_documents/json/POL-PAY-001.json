@@ -1,0 +1,20 @@
+{
+  "document_id": "POL-PAY-001",
+  "title": "Payment Authorization and Billing Policy",
+  "document_type": "PAYMENTS",
+  "version": "2026.1",
+  "effective_date": "2026-01-01",
+  "region": "US",
+  "category": "Payments",
+  "membership_tier": null,
+  "status": "APPROVED",
+  "uploaded_by": "USR001",
+  "data_status": "SYNTHETIC_DEMO",
+  "section": "Pending authorizations and final charges",
+  "sections": [
+    {
+      "section_title": "Pending authorizations and final charges",
+      "content": "A pending payment authorization may appear before an order is dispatched. A pending authorization is not necessarily a settled charge and may be released or adjusted according to the payment provider's process. The final captured amount is shown in the order receipt and can include taxes, shipping, discounts, and approved adjustments.\n\nCustomers should compare the order confirmation and payment statement before reporting a discrepancy. If a duplicate or unfamiliar settled charge appears, contact support through the verified Help Center and provide the order reference; never send full card details or security codes.\n\nThe assistant must not infer payment success from a customer message or a pending bank notification. Payment state must come from the authorized order/payment record. The demo project does not process real payments, so seeded payment states must be clearly identified as simulated."
+    }
+  ]
+}
