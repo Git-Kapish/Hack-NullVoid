@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react';
 import { useAuth } from '../context/AuthContext';
 import { 
   ShoppingBag, 
@@ -158,8 +159,21 @@ export function Navbar({ cartCount = 0, wishlistCount = 0 }) {
             {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
 
-          {isAuthenticated ? (
-            <>
+          {/* Clerk Signed Out State */}
+          <Show when="signed-out">
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <SignInButton mode="modal">
+                <button className="btn btn-outline btn-sm">Sign In</button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="btn btn-primary btn-sm">Sign Up</button>
+              </SignUpButton>
+            </div>
+          </Show>
+
+          {/* Clerk Signed In State */}
+          <Show when="signed-in">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <Link to="/wishlist" title="Wishlist" style={{ position: 'relative', color: 'var(--color-text-muted)' }}>
                 <Heart size={20} />
                 {wishlistCount > 0 && (
@@ -194,27 +208,13 @@ export function Navbar({ cartCount = 0, wishlistCount = 0 }) {
                 )}
               </Link>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}>
-                <Link to="/orders" className="btn btn-outline btn-sm">
-                  Orders
-                </Link>
-                <span className="badge badge-neutral" style={{ textTransform: 'capitalize' }}>
-                  {membershipTier.toLowerCase()}
-                </span>
-                <button 
-                  onClick={logout} 
-                  className="btn btn-secondary btn-sm"
-                  title="Sign out"
-                >
-                  <LogOut size={14} />
-                </button>
-              </div>
-            </>
-          ) : (
-            <Link to="/login" className="btn btn-primary btn-sm">
-              Log in
-            </Link>
-          )}
+              <Link to="/orders" className="btn btn-outline btn-sm">
+                Orders
+              </Link>
+
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          </Show>
         </div>
       </div>
     </header>
