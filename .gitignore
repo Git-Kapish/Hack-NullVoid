@@ -53,3 +53,5 @@ yarn-error.log*
 *.db
 uploads/
 backend/uploads/
+
+/generated/prisma
