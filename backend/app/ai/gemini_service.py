@@ -23,6 +23,32 @@ class GeminiService:
             except Exception as e:
                 logger.warning(f"Could not initialize google-genai client: {e}")
 
+    def _deterministic_recommend(
+        self,
+        query: str,
+        candidates: List[Dict[str, Any]],
+        budget: Optional[float] = None
+    ) -> Dict[str, Any]:
+        matched = []
+        for item in candidates:
+            if budget is None or item.get("price", 0) <= budget:
+                matched.append({
+                    "productId": item["id"],
+                    "productName": item["name"],
+                    "reason": f"Matches your search criteria with strong {item.get('brand', '')} build quality and specifications.",
+                    "availability": item.get("availability", "IN_STOCK"),
+                    "price": float(item.get("price", 0)),
+                })
+            if len(matched) >= 3:
+                break
+
+        return {
+            "interpretedRequirement": f"Shopping request for '{query}'" + (f" with budget ${budget:.2f}" if budget else ""),
+            "budget": budget,
+            "recommendations": matched,
+            "clarifyingQuestion": None if matched else "We couldn't find any items matching your budget. Would you like to raise your budget or view similar categories?",
+        }
+
     async def recommend_products(
         self,
         query: str,
@@ -30,27 +56,8 @@ class GeminiService:
         budget: Optional[float] = None
     ) -> Dict[str, Any]:
         """Generate structured product recommendations grounded strictly in candidate list."""
-        if not self.client:
-            # High-fidelity mock recommendation when API key is not present
-            matched = []
-            for item in candidates:
-                if budget is None or item.get("price", 0) <= budget:
-                    matched.append({
-                        "productId": item["id"],
-                        "productName": item["name"],
-                        "reason": f"Matches your search criteria with strong {item.get('brand', '')} build quality and specifications.",
-                        "availability": item.get("availability", "IN_STOCK"),
-                        "price": float(item.get("price", 0)),
-                    })
-                if len(matched) >= 3:
-                    break
-
-            return {
-                "interpretedRequirement": f"Shopping request for '{query}'" + (f" with budget ${budget:.2f}" if budget else ""),
-                "budget": budget,
-                "recommendations": matched,
-                "clarifyingQuestion": None if matched else "We couldn't find any items matching your budget. Would you like to raise your budget or view similar categories?",
-            }
+        if not self.client or settings.USE_FAKE_LLM or not candidates:
+            return self._deterministic_recommend(query, candidates, budget)
 
         try:
             prompt = f"""
@@ -85,11 +92,11 @@ Return a JSON object conforming to:
             return data
         except Exception as e:
             logger.warning(f"Gemini recommendation failed: {e}. Falling back to deterministic matcher.")
-            return await self.recommend_products(query, candidates, budget)
+            return self._deterministic_recommend(query, candidates, budget)
 
     async def enhance_search_query(self, query: str) -> Dict[str, Any]:
         """Expand vague search query into structured search parameters."""
-        if not self.client:
+        if not self.client or settings.USE_FAKE_LLM:
             return {
                 "expandedQuery": query,
                 "detectedCategory": "Laptops" if "laptop" in query.lower() else None,
@@ -111,7 +118,7 @@ Return a JSON object conforming to:
 
     async def generate_product_tags(self, product_name: str) -> List[str]:
         """Auto-generate 3-5 tags for a newly created product."""
-        if not self.client:
+        if not self.client or settings.USE_FAKE_LLM:
             return ["trending", "featured", "verified"]
         try:
             prompt = f"Generate 4 short tags (one-word or short phrase) for product: '{product_name}'. Return JSON array of strings."
@@ -131,7 +138,7 @@ Return a JSON object conforming to:
         catalog_context: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Interactive shopping concierge dialogue turn."""
-        if not self.client:
+        if not self.client or settings.USE_FAKE_LLM:
             return {
                 "reply": f"I found several options that could match your interest in '{message}'. Check out our featured items in the catalog!",
                 "suggestedProductIds": [p["id"] for p in catalog_context[:2]],
