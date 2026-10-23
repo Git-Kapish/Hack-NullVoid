@@ -19,27 +19,38 @@ let mockAuditLogs = [...SAMPLE_AUDIT_LOGS];
 // Simulated AI Shopping Decision Generator
 function handleMockAiRecommendations(prompt, budget) {
   const pLower = (prompt || '').toLowerCase();
-  let matched = mockProducts;
+  let matched = [...mockProducts];
+  const isLaptop = pLower.includes('laptop') || pLower.includes('macbook') || pLower.includes('computer');
+  const isAudio = pLower.includes('headphone') || pLower.includes('audio') || pLower.includes('noise') || pLower.includes('earbud');
+  const isWearable = pLower.includes('watch') || pLower.includes('wearable');
+  const isAccessory = pLower.includes('mouse') || pLower.includes('keyboard');
   
-  if (pLower.includes('headphone') || pLower.includes('audio') || pLower.includes('noise')) {
+  if (isAudio) {
     matched = matched.filter(p => p.category === 'audio');
-  } else if (pLower.includes('laptop') || pLower.includes('macbook') || pLower.includes('computer')) {
+  } else if (isLaptop) {
     matched = matched.filter(p => p.category === 'laptops');
-  } else if (pLower.includes('watch') || pLower.includes('wearable')) {
+  } else if (isWearable) {
     matched = matched.filter(p => p.category === 'wearables');
-  } else if (pLower.includes('mouse') || pLower.includes('keyboard')) {
+  } else if (isAccessory) {
     matched = matched.filter(p => p.category === 'accessories');
   }
 
   // Budget filter
-  const effectiveBudget = budget || (pLower.match(/\$([0-9]+)/) ? parseInt(pLower.match(/\$([0-9]+)/)[1], 10) : 500);
+  const extractedBudget = pLower.match(/\$([0-9]+)/) ? parseInt(pLower.match(/\$([0-9]+)/)[1], 10) : undefined;
+  const effectiveBudget = budget || extractedBudget;
   if (effectiveBudget) {
     matched = matched.filter(p => p.price <= effectiveBudget);
   }
 
-  // If no items match, take top 2 items from audio/accessories
+  // If no items match, NEVER substitute with unrelated categories like headphones!
   if (matched.length === 0) {
-    matched = mockProducts.slice(0, 2);
+    const itemType = isLaptop ? 'laptops' : isAudio ? 'audio items' : 'products';
+    return {
+      interpretedRequirement: `Grounded search for: "${prompt}". Constraint: Under $${effectiveBudget || 'specified budget'} with verified catalog availability.`,
+      budget: effectiveBudget || null,
+      recommendations: [],
+      clarifyingQuestion: `We couldn't find any verified ${itemType} matching your budget of $${effectiveBudget || 1000}. Would you like to explore our other options?`
+    };
   }
 
   const recommendations = matched.slice(0, 3).map(p => ({
@@ -51,10 +62,10 @@ function handleMockAiRecommendations(prompt, budget) {
   }));
 
   return {
-    interpretedRequirement: `Grounded search for: "${prompt}". Constraint: Under $${effectiveBudget} with high user rating and verified catalog availability.`,
-    budget: effectiveBudget,
+    interpretedRequirement: `Grounded search for: "${prompt}". Constraint: Under $${effectiveBudget || 'any budget'} with high user rating and verified catalog availability.`,
+    budget: effectiveBudget || null,
     recommendations,
-    clarifyingQuestion: recommendations.length > 1 ? 'Would you prefer prioritizing longer battery endurance or maximum portability?' : null
+    clarifyingQuestion: recommendations.length > 1 ? 'Would you prefer prioritizing longer battery endurance or maximum performance?' : null
   };
 }
 
@@ -87,9 +98,10 @@ function fallbackMockHandler(endpoint, options = {}) {
     }
     list = list.filter(p => p.price >= minP && p.price <= maxP);
 
-    if (sort === 'price-asc') list.sort((a, b) => a.price - b.price);
-    else if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
-    else if (sort === 'rating') list.sort((a, b) => b.rating - a.rating);
+    if (sort === 'price-asc' || sort === 'price_asc') list.sort((a, b) => a.price - b.price);
+    else if (sort === 'price-desc' || sort === 'price_desc') list.sort((a, b) => b.price - a.price);
+    else if (sort === 'rating' || sort === 'rating_desc' || sort === 'rating-desc') list.sort((a, b) => b.rating - a.rating);
+    else if (sort === 'featured') list.sort((a, b) => b.rating - a.rating);
 
     const page = parseInt(params.get('page') || '1', 10);
     const size = parseInt(params.get('size') || '12', 10);

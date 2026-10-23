@@ -69,6 +69,7 @@ export function Assistant() {
       const budget = budgetMatch ? parseInt(budgetMatch[1], 10) : undefined;
 
       const aiResponse = await api.post('/ai/recommendations', {
+        query: textToSend,
         prompt: textToSend,
         budget
       });

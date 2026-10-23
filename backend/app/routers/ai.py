@@ -24,9 +24,26 @@ async def get_recommendations(
     Generate grounded AI recommendations using the Gemini API.
     Extracts intent, queries candidate products from database, and produces tailored explanations.
     """
-    # Fetch active candidate products from database
-    filter_params = ProductFilterQuery(page=0, size=20)
+    # Query-informed candidate retrieval from catalog
+    q_lower = (payload.query or "").lower()
+    cat = None
+    if any(k in q_lower for k in ["laptop", "notebook", "computer", "macbook", "pc"]):
+        cat = "laptops"
+    elif any(k in q_lower for k in ["headphone", "audio", "earbud", "sound", "speaker", "noise"]):
+        cat = "audio"
+    elif any(k in q_lower for k in ["watch", "wearable", "fitness", "tracker"]):
+        cat = "wearables"
+    elif any(k in q_lower for k in ["keyboard", "mouse", "dock", "accessory", "peripherals"]):
+        cat = "accessories"
+
+    filter_params = ProductFilterQuery(page=0, size=50, category=cat)
     candidates_result = await catalog_service.list_products(filter_params)
+
+    # Fallback to broader catalog if no candidates found in specific category
+    if not candidates_result["items"] and cat:
+        fallback_params = ProductFilterQuery(page=0, size=50)
+        candidates_result = await catalog_service.list_products(fallback_params)
+
     candidate_dicts = [
         {
             "id": p.id,

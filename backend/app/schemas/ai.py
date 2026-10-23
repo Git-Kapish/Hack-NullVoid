@@ -1,5 +1,5 @@
 from typing import List, Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class RecommendationItem(BaseModel):
@@ -11,8 +11,17 @@ class RecommendationItem(BaseModel):
 
 
 class RecommendationRequest(BaseModel):
-    query: str = Field(..., description="Natural language shopping request")
+    query: Optional[str] = Field(None, description="Natural language shopping request")
+    prompt: Optional[str] = Field(None, description="Alias for query")
     budget: Optional[float] = Field(None, ge=0, description="Optional maximum budget")
+
+    @model_validator(mode="after")
+    def resolve_query(self):
+        if not self.query and self.prompt:
+            self.query = self.prompt
+        if not self.query:
+            raise ValueError("Query string is required.")
+        return self
 
 
 class RecommendationResponse(BaseModel):

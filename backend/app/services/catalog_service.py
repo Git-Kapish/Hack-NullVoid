@@ -37,7 +37,17 @@ class CatalogService:
                 {"brand": {"contains": filters.query, "mode": "insensitive"}},
             ]
 
-        if filters.brand:
+        if filters.category and filters.category != "all":
+            where["category"] = {
+                "is": {
+                    "OR": [
+                        {"slug": {"equals": filters.category, "mode": "insensitive"}},
+                        {"name": {"contains": filters.category, "mode": "insensitive"}},
+                    ]
+                }
+            }
+
+        if filters.brand and filters.brand != "all":
             where["brand"] = {"equals": filters.brand, "mode": "insensitive"}
 
         price_filter: Dict[str, Any] = {}
@@ -48,17 +58,23 @@ class CatalogService:
         if price_filter:
             where["price"] = price_filter
 
-        # Sort order
+        # Sort order - support both hyphenated (price-desc) and underscored (price_desc) formats
         order_by: Any = {"price": "asc"}
-        if filters.sort == "price_desc":
+        s = (filters.sort or "featured").lower().replace("-", "_")
+        if s in ("price_desc", "pricedesc"):
             order_by = {"price": "desc"}
-        elif filters.sort == "rating_desc":
+        elif s in ("price_asc", "priceasc"):
+            order_by = {"price": "asc"}
+        elif s in ("rating_desc", "rating", "ratingdesc"):
             order_by = {"rating": "desc"}
-        elif filters.sort == "newest":
+        elif s in ("newest", "newest_desc"):
             order_by = {"createdAt": "desc"}
+        elif s in ("featured", ""):
+            order_by = {"rating": "desc"}
 
-        # Execute count and find
-        skip = filters.page * filters.size
+        # Execute count and find (support 1-based frontend page index and 0-based index)
+        page_idx = max(0, (filters.page - 1) if filters.page >= 1 else filters.page)
+        skip = page_idx * filters.size
         take = filters.size
 
         total = await db.product.count(where=where)
@@ -69,6 +85,8 @@ class CatalogService:
             skip=skip,
             take=take,
         )
+
+        totalPages = (total + filters.size - 1) // filters.size if total > 0 else 1
 
         items = []
         for p in products:

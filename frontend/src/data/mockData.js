@@ -31,7 +31,7 @@ export const DEMO_PERSONAS = [
 
 export const CATEGORIES = [
   { id: 'audio', name: 'Audio & Sound', count: 4, icon: 'Headphones' },
-  { id: 'laptops', name: 'Laptops & Computers', count: 3, icon: 'Laptop' },
+  { id: 'laptops', name: 'Laptops & Computers', count: 8, icon: 'Laptop' },
   { id: 'wearables', name: 'Smart Wearables', count: 3, icon: 'Watch' },
   { id: 'accessories', name: 'Keyboards & Peripherals', count: 4, icon: 'Keyboard' }
 ];
@@ -214,6 +214,136 @@ export const PRODUCTS = [
       'Battery Life': 'Up to 14 hours',
       'Weight': '1.09 kg (2.4 lbs)',
       'Warranty': '3 Years Onsite Next Business Day'
+    }
+  },
+  {
+    id: 'prod-016',
+    name: 'Acer Aspire 5 Slim Laptop',
+    category: 'laptops',
+    brand: 'Acer',
+    price: 499.00,
+    originalPrice: 599.00,
+    currency: 'USD',
+    rating: 4.4,
+    reviewCount: 680,
+    availability: 'IN_STOCK',
+    stockCount: 35,
+    images: [
+      'https://images.unsplash.com/photo-1544717305-2782549b5136?w=800&q=80'
+    ],
+    description: 'Practical everyday laptop with AMD Ryzen 5, 15.6" FHD IPS screen, fast SSD storage, and all-day battery life.',
+    specs: {
+      'Processor': 'AMD Ryzen 5 7520U (4-core, up to 4.3 GHz)',
+      'RAM': '16GB LPDDR5',
+      'Storage': '512GB PCIe NVMe SSD',
+      'Display': '15.6-inch Full HD (1920 x 1080) IPS',
+      'Battery Life': 'Up to 9.5 hours',
+      'Weight': '1.78 kg (3.92 lbs)',
+      'Warranty': '1 Year Manufacturer'
+    }
+  },
+  {
+    id: 'prod-017',
+    name: 'Lenovo IdeaPad 3 15" Laptop',
+    category: 'laptops',
+    brand: 'Lenovo',
+    price: 599.00,
+    originalPrice: 699.00,
+    currency: 'USD',
+    rating: 4.5,
+    reviewCount: 910,
+    availability: 'IN_STOCK',
+    stockCount: 28,
+    images: [
+      'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&q=80'
+    ],
+    description: 'Reliable workhorse laptop featuring Intel Core i5 12th Gen processor, privacy webcam shutter, and Dolby Audio.',
+    specs: {
+      'Processor': 'Intel Core i5-1235U (10-core)',
+      'RAM': '16GB DDR4-3200',
+      'Storage': '512GB M.2 PCIe SSD',
+      'Display': '15.6-inch FHD (1920 x 1080) Anti-glare',
+      'Battery Life': 'Up to 8 hours with Rapid Charge',
+      'Weight': '1.63 kg (3.59 lbs)',
+      'Warranty': '1 Year Depot'
+    }
+  },
+  {
+    id: 'prod-018',
+    name: 'Asus Vivobook 15 OLED Laptop',
+    category: 'laptops',
+    brand: 'Asus',
+    price: 649.00,
+    originalPrice: 749.00,
+    currency: 'USD',
+    rating: 4.6,
+    reviewCount: 430,
+    availability: 'IN_STOCK',
+    stockCount: 19,
+    images: [
+      'https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=800&q=80'
+    ],
+    description: 'Vibrant OLED display laptop for students and creators with 100% DCI-P3 color gamut, antimicrobial guard, and ergonomic keyboard.',
+    specs: {
+      'Processor': 'Intel Core i5-1335U (10-core, up to 4.6 GHz)',
+      'RAM': '16GB DDR4',
+      'Storage': '512GB PCIe 4.0 SSD',
+      'Display': '15.6-inch FHD (1920 x 1080) OLED 600-nit HDR',
+      'Battery Life': 'Up to 9 hours',
+      'Weight': '1.7 kg (3.75 lbs)',
+      'Warranty': '1 Year ASUS Accidental Damage Protection'
+    }
+  },
+  {
+    id: 'prod-019',
+    name: 'HP Pavilion 14 Laptop',
+    category: 'laptops',
+    brand: 'HP',
+    price: 749.00,
+    originalPrice: 849.00,
+    currency: 'USD',
+    rating: 4.5,
+    reviewCount: 520,
+    availability: 'IN_STOCK',
+    stockCount: 22,
+    images: [
+      'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=800&q=80'
+    ],
+    description: 'Compact and stylish 14-inch laptop with micro-edge screen, B&O audio, fast charge, and Intel Core i7 processing power.',
+    specs: {
+      'Processor': 'Intel Core i7-1355U (10-core, up to 5.0 GHz)',
+      'RAM': '16GB DDR4-3200',
+      'Storage': '1TB PCIe NVMe SSD',
+      'Display': '14-inch IPS FHD (1920 x 1080) Touchscreen',
+      'Battery Life': 'Up to 10 hours',
+      'Weight': '1.41 kg (3.11 lbs)',
+      'Warranty': '1 Year Manufacturer'
+    }
+  },
+  {
+    id: 'prod-020',
+    name: 'Apple MacBook Air 13" M1',
+    category: 'laptops',
+    brand: 'Apple',
+    price: 849.00,
+    originalPrice: 999.00,
+    currency: 'USD',
+    rating: 4.8,
+    reviewCount: 4210,
+    availability: 'IN_STOCK',
+    stockCount: 16,
+    images: [
+      'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800&q=80'
+    ],
+    description: 'Legendary performance and value. Apple M1 chip with silent fanless design, gorgeous Retina display, and 18-hour battery.',
+    specs: {
+      'Processor': 'Apple M1 (8-core CPU, 7-core GPU)',
+      'RAM': '8GB Unified Memory',
+      'Storage': '256GB SSD',
+      'Display': '13.3-inch Retina (2560 x 1600)',
+      'Battery Life': 'Up to 18 hours',
+      'Weight': '1.29 kg (2.8 lbs)',
+      'Warranty': '1 Year AppleCare eligible'
     }
   },
   {
