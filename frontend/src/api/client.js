@@ -152,15 +152,33 @@ function fallbackMockHandler(endpoint, options = {}) {
     const body = typeof options.body === 'string' ? JSON.parse(options.body) : (options.body || {});
     const email = body.email || 'david.basic@example.com';
     const persona = DEMO_PERSONAS.find(p => p.email.toLowerCase() === email.toLowerCase()) || {
+      id: `user_${email.split('@')[0]}`,
       email,
       name: email.split('@')[0],
       role: 'CUSTOMER',
       membership_tier: 'BASIC'
     };
+
+    // Construct valid 3-segment base64 token: header.payload.signature
+    const h = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+    const p = btoa(JSON.stringify({
+      sub: persona.id || "user_basic_004",
+      email: persona.email,
+      role: persona.role || "CUSTOMER",
+      membership_tier: persona.membership_tier || "BASIC",
+      name: persona.name,
+      exp: Math.floor(Date.now() / 1000) + 7 * 86400
+    }));
+    const s = btoa("shopsmart_mock_signature");
+    const validJwt = `${h}.${p}.${s}`;
+
     return {
-      access_token: `mock-jwt-token-${Date.now()}`,
+      access_token: validJwt,
       token_type: 'bearer',
-      user: persona
+      user: {
+        ...persona,
+        membershipTier: persona.membership_tier
+      }
     };
   }
 

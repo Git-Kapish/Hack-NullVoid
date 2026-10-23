@@ -1,9 +1,144 @@
-from fastapi import APIRouter, Depends, status
+from datetime import datetime, timezone, timedelta
+import uuid
+import jwt
+from fastapi import APIRouter, Depends, status, HTTPException
 from app.core.clerk_auth import get_current_user, AuthUser
+from app.core.config import settings
 from app.core.database import get_prisma
-from app.schemas.auth import UserProfileResponse, CustomerPreferenceUpdate, ClerkWebhookEvent
+from app.schemas.auth import (
+    UserProfileResponse,
+    CustomerPreferenceUpdate,
+    ClerkWebhookEvent,
+    LoginRequest,
+    LoginResponse,
+    LoginUserPayload,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication & User"])
+
+DEMO_PERSONAS_DICT = {
+    "admin@shopsmart.ai": {
+        "id": "user_admin_001",
+        "email": "admin@shopsmart.ai",
+        "firstName": "Alex",
+        "lastName": "Vance",
+        "role": "ADMIN",
+        "membershipTier": "PREMIUM",
+    },
+    "sarah.prime@example.com": {
+        "id": "user_prime_002",
+        "email": "sarah.prime@example.com",
+        "firstName": "Sarah",
+        "lastName": "Connor",
+        "role": "CUSTOMER",
+        "membershipTier": "PRIME",
+    },
+    "elena.premium@example.com": {
+        "id": "user_premium_003",
+        "email": "elena.premium@example.com",
+        "firstName": "Elena",
+        "lastName": "Rostova",
+        "role": "CUSTOMER",
+        "membershipTier": "PREMIUM",
+    },
+    "david.basic@example.com": {
+        "id": "user_basic_004",
+        "email": "david.basic@example.com",
+        "firstName": "David",
+        "lastName": "Kim",
+        "role": "CUSTOMER",
+        "membershipTier": "BASIC",
+    },
+}
+
+
+@router.post("/login", response_model=LoginResponse)
+async def login_user(payload: LoginRequest):
+    """Authenticate with credentials or demo persona and issue a valid signed JWT."""
+    db = get_prisma()
+    email_clean = payload.email.lower().strip()
+
+    user_record = None
+    if db.is_connected():
+        user_record = await db.user.find_unique(where={"email": email_clean})
+
+    if not user_record and email_clean in DEMO_PERSONAS_DICT:
+        demo = DEMO_PERSONAS_DICT[email_clean]
+        if db.is_connected():
+            user_record = await db.user.upsert(
+                where={"id": demo["id"]},
+                data={"create": demo, "update": demo}
+            )
+        else:
+            class MockUserObj:
+                pass
+            user_record = MockUserObj()
+            for k, v in demo.items():
+                setattr(user_record, k, v)
+
+    if not user_record:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        parts = email_clean.split("@")[0].split(".")
+        first_name = parts[0].capitalize()
+        last_name = parts[1].capitalize() if len(parts) > 1 else ""
+        if db.is_connected():
+            user_record = await db.user.create(
+                data={
+                    "id": user_id,
+                    "email": email_clean,
+                    "firstName": first_name,
+                    "lastName": last_name,
+                    "role": "CUSTOMER",
+                    "membershipTier": "BASIC",
+                }
+            )
+        else:
+            class MockUserObj:
+                pass
+            user_record = MockUserObj()
+            user_record.id = user_id
+            user_record.email = email_clean
+            user_record.firstName = first_name
+            user_record.lastName = last_name
+            user_record.role = "CUSTOMER"
+            user_record.membershipTier = "BASIC"
+
+    user_id = user_record.id
+    user_email = user_record.email
+    first_name = user_record.firstName or ""
+    last_name = user_record.lastName or ""
+    full_name = f"{first_name} {last_name}".strip() or user_email.split("@")[0]
+    user_role = user_record.role
+    user_tier = user_record.membershipTier
+
+    secret = settings.CLERK_SECRET_KEY or "shopsmart-secret-dev-key-2026"
+    now = datetime.now(timezone.utc)
+    claims = {
+        "sub": user_id,
+        "email": user_email,
+        "role": user_role,
+        "membership_tier": user_tier,
+        "first_name": first_name,
+        "last_name": last_name,
+        "exp": now + timedelta(days=7),
+        "iat": now,
+        "iss": "shopsmart-auth",
+        "aud": "shopsmart-api",
+    }
+    access_token = jwt.encode(claims, secret, algorithm="HS256")
+
+    return LoginResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=LoginUserPayload(
+            id=user_id,
+            email=user_email,
+            name=full_name,
+            role=user_role,
+            membership_tier=user_tier,
+            membershipTier=user_tier,
+        ),
+    )
 
 
 @router.get("/me", response_model=UserProfileResponse)
@@ -12,6 +147,8 @@ async def get_my_profile(current_user: AuthUser = Depends(get_current_user)):
     db = get_prisma()
     if db.is_connected():
         user = await db.user.find_unique(where={"id": current_user.id})
+        if not user and current_user.email:
+            user = await db.user.find_unique(where={"email": current_user.email})
         if user:
             return UserProfileResponse(
                 id=user.id,

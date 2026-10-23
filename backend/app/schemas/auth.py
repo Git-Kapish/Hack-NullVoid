@@ -21,3 +21,23 @@ class ClerkWebhookEvent(BaseModel):
     data: dict
     object: str
     type: str
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: Optional[str] = "password123"
+
+
+class LoginUserPayload(BaseModel):
+    id: str
+    email: EmailStr
+    name: str
+    role: str
+    membership_tier: str
+    membershipTier: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: LoginUserPayload

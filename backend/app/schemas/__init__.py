@@ -1,5 +1,5 @@
 from app.schemas.common import ErrorResponse, PaginationParams, PaginatedResponse
-from app.schemas.auth import UserProfileResponse, CustomerPreferenceUpdate, ClerkWebhookEvent
+from app.schemas.auth import UserProfileResponse, CustomerPreferenceUpdate, ClerkWebhookEvent, LoginRequest, LoginResponse
 from app.schemas.catalog import (
     CategoryResponse,
     ProductSpecSchema,

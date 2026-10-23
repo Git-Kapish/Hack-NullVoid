@@ -51,40 +51,91 @@ async def get_current_user(
 
     token = credentials.credentials
 
-    # 3. Decode Clerk JWT or mock token
+    # 3. Decode Clerk JWT, local JWT, or mock token
     try:
-        if settings.CLERK_SECRET_KEY:
-            # Decode using Clerk Secret / JWKS
-            # Clerk tokens can be decoded without verification in mock mode, or verified with Clerk JWKS
+        # Check if token is a valid 3-part JWT
+        if token and token.count(".") == 2:
             payload = jwt.decode(token, options={"verify_signature": False})
-        else:
-            # Fallback permissive decode for local development
-            payload = jwt.decode(token, options={"verify_signature": False})
+            user_id = payload.get("sub") or payload.get("user_id") or payload.get("id")
+            email = payload.get("email") or (payload.get("sub", "") + "@clerk.user" if payload.get("sub") else "user@shopsmart.ai")
+            role = payload.get("role", "CUSTOMER")
+            tier = payload.get("membership_tier") or payload.get("membershipTier", "BASIC")
+            first_name = payload.get("first_name") or payload.get("firstName")
+            last_name = payload.get("last_name") or payload.get("lastName")
 
-        user_id = payload.get("sub") or payload.get("user_id") or payload.get("id")
-        email = payload.get("email") or payload.get("sub", "") + "@clerk.user"
-        role = payload.get("role", "CUSTOMER")
-        tier = payload.get("membership_tier", "BASIC")
-        first_name = payload.get("first_name")
-        last_name = payload.get("last_name")
-
-        if not user_id:
+            if user_id:
+                return AuthUser(
+                    id=user_id,
+                    email=email,
+                    role=role,
+                    membership_tier=tier,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+        elif not settings.CLERK_MOCK_AUTH:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: missing subject claim",
+                detail="Invalid token format: expected 3-part JWT",
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        return AuthUser(
-            id=user_id,
-            email=email,
-            role=role,
-            membership_tier=tier,
-            first_name=first_name,
-            last_name=last_name
+        # Fallback for mock dev tokens when CLERK_MOCK_AUTH is enabled
+        if settings.CLERK_MOCK_AUTH:
+            token_lower = (token or "").lower()
+            if "admin" in token_lower:
+                return AuthUser(
+                    id="user_admin_001",
+                    email="admin@shopsmart.ai",
+                    role="ADMIN",
+                    membership_tier="PREMIUM",
+                    first_name="Alex",
+                    last_name="Vance",
+                )
+            elif "prime" in token_lower or "sarah" in token_lower:
+                return AuthUser(
+                    id="user_prime_002",
+                    email="sarah.prime@example.com",
+                    role="CUSTOMER",
+                    membership_tier="PRIME",
+                    first_name="Sarah",
+                    last_name="Connor",
+                )
+            elif "premium" in token_lower or "elena" in token_lower:
+                return AuthUser(
+                    id="user_premium_003",
+                    email="elena.premium@example.com",
+                    role="CUSTOMER",
+                    membership_tier="PREMIUM",
+                    first_name="Elena",
+                    last_name="Rostova",
+                )
+            else:
+                return AuthUser(
+                    id="user_basic_004",
+                    email="david.basic@example.com",
+                    role="CUSTOMER",
+                    membership_tier="BASIC",
+                    first_name="David",
+                    last_name="Kim",
+                )
+
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token: missing subject claim",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     except jwt.PyJWTError as e:
+        if settings.CLERK_MOCK_AUTH:
+            logger.debug(f"Clerk token decode failed in mock mode ({e}); defaulting to mock customer")
+            return AuthUser(
+                id="user_basic_004",
+                email="david.basic@example.com",
+                role="CUSTOMER",
+                membership_tier="BASIC",
+                first_name="David",
+                last_name="Kim"
+            )
         logger.warning(f"Clerk token decode failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
