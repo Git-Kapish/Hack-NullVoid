@@ -1,30 +1,47 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCartWishlist } from '../context/CartWishlistContext';
+import { useCompare } from '../context/CompareContext';
+import { Badge } from './common/Badge';
 import { 
   ShoppingBag, 
   Sparkles, 
   Layers, 
-  BookOpen, 
   ShoppingCart, 
   Heart, 
   User, 
   LogOut, 
   ShieldCheck,
   Moon,
-  Sun
+  Sun,
+  Package,
+  Sliders,
+  ChevronDown,
+  BookOpen
 } from 'lucide-react';
 
-export function Navbar({ cartCount = 0, wishlistCount = 0 }) {
+export function Navbar() {
   const { user, isAuthenticated, isAdmin, logout, membershipTier } = useAuth();
+  const { cartCount, wishlistCount } = useCartWishlist();
+  const { compareCount } = useCompare();
+
   const navigate = useNavigate();
   const location = useLocation();
-  const [theme, setTheme] = React.useState('light');
+
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('shopsmart_theme') || 'dark';
+  });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [adminMenuOpen, setAdminMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('shopsmart_theme', theme);
+  }, [theme]);
 
   const toggleTheme = () => {
-    const next = theme === 'light' ? 'dark' : 'light';
-    setTheme(next);
-    document.documentElement.setAttribute('data-theme', next);
+    setTheme(t => t === 'dark' ? 'light' : 'dark');
   };
 
   const isActive = (path) => location.pathname === path;
@@ -32,187 +49,364 @@ export function Navbar({ cartCount = 0, wishlistCount = 0 }) {
   return (
     <header style={{
       borderBottom: '1px solid var(--color-border)',
-      backgroundColor: 'var(--color-bg)',
+      backgroundColor: 'var(--color-glass)',
       position: 'sticky',
       top: 0,
-      zIndex: 50,
-      backdropFilter: 'blur(8px)'
+      zIndex: 60,
+      backdropFilter: 'blur(16px)'
     }}>
       <div style={{
-        maxWidth: '1280px',
+        maxWidth: '1240px',
         margin: '0 auto',
-        padding: '0.75rem 1.5rem',
+        padding: '0.75rem 1.25rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '1.5rem'
       }}>
-        {/* Brand */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+        {/* Brand Logo */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
           <div style={{
             width: '34px',
             height: '34px',
-            borderRadius: '8px',
-            backgroundColor: 'var(--color-primary)',
+            borderRadius: '9px',
+            background: 'var(--gradient-ai)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#fff'
+            color: '#fff',
+            boxShadow: '0 0 12px var(--color-ai-glow)'
           }}>
-            <ShoppingBag size={20} />
+            <ShoppingBag size={18} />
           </div>
-          <div>
-            <span style={{ fontWeight: 700, fontSize: '1.15rem', color: 'var(--color-text)' }}>ShopSmart</span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
+              ShopSmart
+            </span>
             <span style={{ 
-              marginLeft: '4px', 
-              fontSize: '0.75rem', 
-              fontWeight: 600, 
-              backgroundColor: 'var(--color-ai-surface)', 
+              marginLeft: '5px', 
+              fontSize: '0.7rem', 
+              fontWeight: 700, 
+              backgroundColor: 'var(--color-ai-surface-2)', 
               color: 'var(--color-ai-text)', 
-              padding: '2px 6px', 
+              padding: '2px 7px', 
               borderRadius: '999px',
               border: '1px solid var(--color-ai-border)'
             }}>AI</span>
           </div>
         </Link>
 
-        {/* Primary Navigation */}
+        {/* Primary Desktop Navigation */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <Link to="/products" style={{ 
-            color: isActive('/products') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            fontWeight: isActive('/products') ? 600 : 500,
-            fontSize: '0.9rem'
-          }}>
+          <Link
+            to="/products"
+            style={{ 
+              color: isActive('/products') ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/products') ? 600 : 500,
+              fontSize: '0.9rem'
+            }}
+          >
             Shop
           </Link>
-          <Link to="/compare" style={{ 
-            color: isActive('/compare') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            fontWeight: isActive('/compare') ? 600 : 500,
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem'
-          }}>
-            <Layers size={16} /> Compare
-          </Link>
-          <Link to="/assistant" style={{ 
-            color: isActive('/assistant') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            fontWeight: isActive('/assistant') ? 600 : 500,
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem'
-          }}>
-            <Sparkles size={16} style={{ color: 'var(--color-primary)' }} /> Ask AI
-          </Link>
-          <Link to="/policies" style={{ 
-            color: isActive('/policies') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-            fontWeight: isActive('/policies') ? 600 : 500,
-            fontSize: '0.9rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem'
-          }}>
-            <BookOpen size={16} /> Policies
+
+          <Link
+            to="/compare"
+            style={{ 
+              color: isActive('/compare') ? 'var(--color-primary)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/compare') ? 600 : 500,
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <Layers size={15} /> Compare
+            {compareCount > 0 && (
+              <span style={{
+                backgroundColor: 'var(--color-primary)',
+                color: '#fff',
+                fontSize: '0.65rem',
+                borderRadius: '999px',
+                padding: '1px 5px',
+                fontWeight: 700
+              }}>
+                {compareCount}
+              </span>
+            )}
           </Link>
 
-          {/* Admin Navigation (Role-aware) */}
+          <Link
+            to="/assistant"
+            style={{ 
+              color: isActive('/assistant') ? 'var(--color-ai-text)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/assistant') ? 600 : 500,
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+          >
+            <Sparkles size={15} color="var(--color-ai-text)" /> Ask AI
+          </Link>
+
+          {/* Admin Menu Dropdown */}
           {isAdmin && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', paddingLeft: '0.75rem', borderLeft: '1px solid var(--color-border)' }}>
-              <Link to="/admin/knowledge" style={{ 
-                color: isActive('/admin/knowledge') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                <ShieldCheck size={14} /> Admin Knowledge
-              </Link>
-              <Link to="/admin/audit" style={{ 
-                color: isActive('/admin/audit') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                fontSize: '0.85rem',
-                fontWeight: 600
-              }}>
-                Audit
-              </Link>
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setAdminMenuOpen(!adminMenuOpen)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-text)',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                <ShieldCheck size={16} color="var(--color-primary)" /> Admin <ChevronDown size={14} />
+              </button>
+
+              {adminMenuOpen && (
+                <div
+                  className="card card-elevated animate-fade-in"
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '8px',
+                    width: '210px',
+                    padding: '0.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    zIndex: 70
+                  }}
+                  onMouseLeave={() => setAdminMenuOpen(false)}
+                >
+                  <Link
+                    to="/admin/products"
+                    className="btn-ghost"
+                    style={{ padding: '6px 10px', borderRadius: '6px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    onClick={() => setAdminMenuOpen(false)}
+                  >
+                    <ShoppingBag size={14} /> Product Catalog
+                  </Link>
+                  <Link
+                    to="/admin/audit"
+                    className="btn-ghost"
+                    style={{ padding: '6px 10px', borderRadius: '6px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    onClick={() => setAdminMenuOpen(false)}
+                  >
+                    <ShieldCheck size={14} /> AI Decision Logs
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </nav>
 
-        {/* Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <button 
+        {/* Right Action Icons: Theme, Wishlist, Cart, Account */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Theme Toggle */}
+          <button
             onClick={toggleTheme}
+            className="btn-ghost"
             style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--color-text-muted)',
+              padding: '6px',
+              borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
-              padding: '6px'
+              justifyContent: 'center',
+              cursor: 'pointer'
             }}
-            title="Toggle theme"
+            title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            aria-label="Toggle theme"
           >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
+          {/* Wishlist Link */}
+          <Link
+            to="/wishlist"
+            className="btn-ghost"
+            style={{
+              position: 'relative',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title="Wishlist"
+          >
+            <Heart size={18} />
+            {wishlistCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                backgroundColor: '#EF4444',
+                color: '#fff',
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {wishlistCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Cart Bag */}
+          <Link
+            to="/cart"
+            className="btn-ghost"
+            style={{
+              position: 'relative',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title="Cart"
+          >
+            <ShoppingCart size={18} />
+            {cartCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: 0,
+                right: 0,
+                backgroundColor: 'var(--color-primary)',
+                color: '#fff',
+                fontSize: '0.65rem',
+                fontWeight: 700,
+                width: '16px',
+                height: '16px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {cartCount}
+              </span>
+            )}
+          </Link>
+
+          {/* User Account / Personas Menu */}
           {isAuthenticated ? (
-            <>
-              <Link to="/wishlist" title="Wishlist" style={{ position: 'relative', color: 'var(--color-text-muted)' }}>
-                <Heart size={20} />
-                {wishlistCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-8px',
-                    backgroundColor: 'var(--color-primary)',
-                    color: '#fff',
-                    borderRadius: '50%',
-                    fontSize: '10px',
-                    padding: '1px 5px',
-                    fontWeight: 700
-                  }}>{wishlistCount}</span>
-                )}
-              </Link>
-
-              <Link to="/cart" title="Cart" style={{ position: 'relative', color: 'var(--color-text-muted)' }}>
-                <ShoppingCart size={20} />
-                {cartCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-8px',
-                    backgroundColor: 'var(--color-primary)',
-                    color: '#fff',
-                    borderRadius: '50%',
-                    fontSize: '10px',
-                    padding: '1px 5px',
-                    fontWeight: 700
-                  }}>{cartCount}</span>
-                )}
-              </Link>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '0.5rem' }}>
-                <Link to="/orders" className="btn btn-outline btn-sm">
-                  Orders
-                </Link>
-                <span className="badge badge-neutral" style={{ textTransform: 'capitalize' }}>
-                  {membershipTier.toLowerCase()}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                style={{
+                  background: 'none',
+                  border: '1px solid var(--color-border)',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  backgroundColor: 'var(--color-surface)'
+                }}
+              >
+                <User size={14} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text)' }}>
+                  {user?.name?.split(' ')[0]}
                 </span>
-                <button 
-                  onClick={logout} 
-                  className="btn btn-secondary btn-sm"
-                  title="Sign out"
+                <Badge variant={membershipTier} size="sm">{membershipTier}</Badge>
+              </button>
+
+              {userMenuOpen && (
+                <div
+                  className="card card-elevated animate-fade-in"
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '8px',
+                    width: '230px',
+                    padding: '0.75rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                    zIndex: 70
+                  }}
+                  onMouseLeave={() => setUserMenuOpen(false)}
                 >
-                  <LogOut size={14} />
-                </button>
-              </div>
-            </>
+                  <div style={{ paddingBottom: '6px', borderBottom: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.875rem' }}>{user?.name}</div>
+                    <div className="text-xs text-muted font-mono">{user?.email}</div>
+                  </div>
+
+                  <Link
+                    to="/orders"
+                    className="btn-ghost"
+                    style={{ padding: '6px 8px', borderRadius: '6px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <Package size={14} /> Orders & Timeline
+                  </Link>
+
+                  <Link
+                    to="/support"
+                    className="btn-ghost"
+                    style={{ padding: '6px 8px', borderRadius: '6px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <BookOpen size={14} /> Support Tickets
+                  </Link>
+
+                  <Link
+                    to="/account/preferences"
+                    className="btn-ghost"
+                    style={{ padding: '6px 8px', borderRadius: '6px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <Sliders size={14} /> Shopping Preferences
+                  </Link>
+
+                  <Link
+                    to="/login"
+                    className="btn-ghost"
+                    style={{ padding: '6px 8px', borderRadius: '6px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)' }}
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <User size={14} /> Switch Demo Persona
+                  </Link>
+
+                  <button
+                    onClick={() => {
+                      logout();
+                      setUserMenuOpen(false);
+                      navigate('/login');
+                    }}
+                    className="btn-ghost"
+                    style={{
+                      padding: '6px 8px',
+                      borderRadius: '6px',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: 'var(--color-danger)',
+                      borderTop: '1px solid var(--color-border)',
+                      marginTop: '4px'
+                    }}
+                  >
+                    <LogOut size={14} /> Log Out
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <Link to="/login" className="btn btn-primary btn-sm">
-              Log in
+              Sign In / Personas
             </Link>
           )}
         </div>
