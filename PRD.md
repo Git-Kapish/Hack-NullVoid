@@ -2,9 +2,9 @@
 
 **Document status:** Draft for hackathon implementation  
 **Product:** ShopSmart AI — Autonomous E-Commerce Assistant Platform  
-**Version:** 1.1 (aligned with the ShopSmart use-case brief; see Section 2.3)  
+**Version:** 1.2 (aligned with the ShopSmart use-case brief; backend and AI stack changed to Python + FastAPI)  
 **Date:** 2026-10-23  
-**Primary stack:** React 19 + Vite, Java + Spring Boot 3 + Spring AI, PostgreSQL + PgVector
+**Primary stack:** React 19 + Vite, Python + FastAPI, PostgreSQL + PgVector
 
 ---
 
@@ -36,17 +36,18 @@ The brief describes an e-commerce assistant that should:
 - Return knowledge answers in the brief's response shape: `answer`, `confidence`, `sources[]` (document, section, version), and `followUpRequired`.
 - Use synthetic/sample data where appropriate; payment processing is out of scope and orders/delivery events may be simulated.
 - Provide a working application/source code, architecture and solution overview, setup instructions, live demonstration, proper schema design, validation and error handling, and clean folder structure.
-- Use the recommended stack: React 19 + Vite, Java + Spring Boot 3 + Spring AI, PostgreSQL + PgVector. The brief allows any approved AI model.
+- The brief lists a recommended (not mandatory) stack of React 19 + Vite, Java + Spring Boot 3 + Spring AI, and PostgreSQL + PgVector, and allows any approved AI model. This PRD keeps React, PostgreSQL, and PgVector and replaces the Java backend with Python + FastAPI (see Section 2.2).
 
 ### 2.2 Implementation decisions for the hackathon
 
 The following are project decisions made to keep the build feasible. They are not explicit requirements from the brief:
 
-- Build a modular monolith with one Spring Boot application.
+- Build a modular monolith with one FastAPI application.
+- Use Python 3.12+ and FastAPI for the backend and AI services. This deviates from the brief's recommended Java/Spring stack, so confirm with the organizers that the recommended stack is not a hard requirement. React 19 + Vite, PostgreSQL, and PgVector stay as recommended.
 - Implement customer and admin roles first; add a support-agent role only if needed.
 - Prioritize product discovery, AI recommendations, RAG, and a small order/support workflow.
 - Use JWT bearer-token authentication for a stateless API, provided the implementation is configured correctly.
-- Use Flyway migrations and deterministic seed scripts.
+- Use Alembic migrations and deterministic seed scripts.
 - Use a small set of narrowly scoped, permission-checked AI tools rather than a complex autonomous multi-agent framework.
 - Defer real payments, real logistics integrations, microservices, Kafka, Kubernetes, and advanced demand forecasting.
 - Treat every feature the brief lists as a functional requirement (comparison, wishlist, customer preferences, login, and so on) as P0. Only additions beyond the brief are P1/P2.
@@ -343,15 +344,15 @@ The brief asks for explainable and auditable AI decisions. Tool-call auditing al
 
 ### 7.1 Architecture style
 
-Use a **modular monolith**: one React frontend, one Spring Boot REST backend, and one PostgreSQL database with PgVector. Keep business modules separated by responsibility; do not introduce microservices for the hackathon MVP.
+Use a **modular monolith**: one React frontend, one FastAPI REST backend, and one PostgreSQL database with PgVector. Keep business modules separated by responsibility; do not introduce microservices for the hackathon MVP.
 
 ```mermaid
 flowchart TB
     U[Customer / Admin] --> FE[React 19 + Vite]
-    FE -->|HTTPS + Bearer Token| SEC[Spring Security + JWT]
-    SEC --> API[Spring Boot REST API]
+    FE -->|HTTPS + Bearer Token| SEC[FastAPI Security Dependencies + JWT]
+    SEC --> API[FastAPI REST API]
 
-    subgraph APP[Spring Boot Modular Monolith]
+    subgraph APP[FastAPI Modular Monolith]
         CAT[Catalog Module]
         CART[Cart / Wishlist Module]
         ORD[Order / Support Module]
@@ -394,10 +395,10 @@ flowchart TB
 | Component | Responsibility |
 |---|---|
 | React + Vite | Catalog, product details, chat, cart, wishlist, orders, admin document upload |
-| Spring Security | Authentication, role authorization, endpoint security |
-| REST controllers | HTTP contracts, DTO validation, response status |
+| FastAPI security dependencies | JWT authentication, role authorization, endpoint security |
+| FastAPI routers | HTTP contracts, Pydantic request validation, response status |
 | Business services | Catalog, cart, order, support, and document business rules |
-| Spring AI | LLM integration, structured output, embeddings, retrieval workflow |
+| AI integration layer | LLM calls with Pydantic-validated structured output, embeddings, retrieval workflow |
 | PostgreSQL | Transactional data and document metadata |
 | PgVector | Similarity search over knowledge chunks |
 | AI tools | Narrow, permission-checked access to approved backend actions |
@@ -441,7 +442,7 @@ Example:
 GET /api/v1/products?query=laptop&category=electronics&minPrice=500&maxPrice=1000&sort=price_asc&page=0&size=12
 ```
 
-Use Spring Data JPA `Pageable` for server-side pagination.
+Use SQLAlchemy `limit`/`offset` queries driven by validated `page` and `size` parameters (with a maximum page size) for server-side pagination.
 
 ### 8.2 Cart, wishlist, preferences
 
@@ -505,13 +506,13 @@ Document-upload endpoints must be admin-only.
 
 ### 8.7 API conventions
 
-- Use DTOs rather than serializing JPA entities directly.
-- Validate request bodies using Bean Validation and `@Valid`.
-- Use a global exception handler with `@RestControllerAdvice`.
+- Use Pydantic schemas for requests and responses rather than returning ORM models directly.
+- Validate request bodies, query parameters, and path parameters with Pydantic models and constraints (`Field`, `conint`, `constr`). FastAPI returns `422` for validation failures by default. Either keep `422` or remap it to `400` with a custom exception handler, and document the choice.
+- Register global exception handlers (`@app.exception_handler`) and a request-ID middleware.
 - Use consistent error responses containing a machine-readable code, safe message, and request/correlation ID.
 - Suggested status codes: `400` invalid input, `401` unauthenticated, `403` forbidden, `404` not found, `409` conflict, `500` unexpected server error.
 - Never return stack traces or secrets to clients.
-- Add OpenAPI/Swagger documentation for endpoint testing and demonstration.
+- Use FastAPI's built-in OpenAPI schema and Swagger UI (`/docs`) for endpoint testing and demonstration.
 
 ---
 
@@ -718,7 +719,7 @@ erDiagram
 - Index catalog fields used for filtering, order owner and creation date, document status/effective date, and common foreign keys.
 - Add a vector index when data volume warrants it; exact similarity search may be adequate for a small seed dataset.
 - Keep published document versions immutable. Publish a new version rather than silently overwriting a previously published policy.
-- Use Flyway for schema migrations and deterministic seed scripts.
+- Use Alembic for schema migrations and deterministic seed scripts.
 
 ---
 
@@ -728,7 +729,7 @@ erDiagram
 
 1. Receive the natural-language request.
 2. Use the LLM to extract structured fields such as category, budget, use case, and constraints.
-3. Validate the output and handle missing required information.
+3. Validate the output against a Pydantic schema and handle missing required information.
 4. Query the actual catalog using backend services.
 5. Filter out products that violate hard constraints.
 6. Optionally use the LLM to explain or rank the eligible candidates.
@@ -765,12 +766,16 @@ Vector similarity alone does not guarantee correctness. Use retrieval thresholds
 **Implementation notes**
 - Apply metadata filters (approval status, effective date, region, category, and tier when implemented) inside the vector search, not after retrieval. Otherwise the top-k results can be filled with ineligible chunks.
 - Derive `confidence` from retrieval similarity scores and the number of supporting chunks, not from the model's self-assessment.
-- Choose one storage approach and document it. Either use Spring AI's `PgVectorStore` (it manages its own table and supports metadata filter expressions) alongside `knowledge_documents` for version and provenance, or maintain the custom `knowledge_chunks` table described in Section 9. Do not run both.
+- Choose one storage approach and document it. Either use a framework vector store (for example LangChain's PGVector or LlamaIndex's PGVectorStore, which manage their own tables) alongside `knowledge_documents` for version and provenance, or maintain the custom `knowledge_chunks` table described in Section 9 using the `pgvector` SQLAlchemy type. The custom table is recommended because metadata filtering stays plain, testable SQL. Do not run both.
 - Seed policy documents must contain the answers to the demo questions, including opened-laptop return, refund timeline, Prime delivery benefit, cancellation after shipment, and smartphone warranty.
 
-### 10.4 Spring AI
+### 10.4 AI Integration (Python)
 
-Use Spring AI abstractions for the chosen LLM provider, embedding model, vector store, and retrieval workflow. Exact configuration depends on the selected Spring AI release and provider. Keep provider configuration externalized so credentials are not committed to source control.
+Call the chosen LLM and embedding provider through its official Python SDK, or through a thin framework layer such as LangChain or LlamaIndex if the team prefers one. Request structured output against Pydantic schemas and validate every response before using it. Run vector search through `pgvector` with SQLAlchemy. Keep all provider calls behind service interfaces so the provider can be swapped.
+
+- Load provider settings (API keys, model and embedding identifiers) through `pydantic-settings` from environment variables so credentials are never committed to source control.
+- Use async provider clients, or run blocking SDK and PDF-parsing calls in a threadpool, so they do not block FastAPI's event loop.
+- Set explicit timeouts and a bounded retry policy on every provider call.
 
 ---
 
@@ -778,7 +783,7 @@ Use Spring AI abstractions for the chosen LLM provider, embedding model, vector 
 
 ### 11.1 Authentication and authorization
 
-- Use Spring Security.
+- Use FastAPI's security utilities: an OAuth2 bearer-token dependency that verifies the JWT (for example with PyJWT), plus reusable role-checking dependencies applied per router or endpoint.
 - For a stateless bearer-token API, validate JWT signature, issuer, expiration, and audience as applicable.
 - If managing passwords locally, store only strong password hashes (e.g. BCrypt), never plaintext passwords.
 - Enforce endpoint roles and service-level object ownership checks.
@@ -793,7 +798,7 @@ Use Spring AI abstractions for the chosen LLM provider, embedding model, vector 
 - Inspect file content; do not trust the filename extension or client-provided MIME type alone.
 - Generate server-side filenames and keep uploaded files outside the public web root.
 - Validate query parameters, quantities, prices, IDs, and all tool inputs.
-- Use parameterized queries through JPA or safe query APIs.
+- Use SQLAlchemy ORM expressions or parameterized queries. Never build SQL by string concatenation.
 - Avoid logging full prompts or documents if they contain personal or confidential data.
 
 ### 11.3 Secrets and audit
@@ -809,7 +814,7 @@ Use Spring AI abstractions for the chosen LLM provider, embedding model, vector 
 - Treat customer messages and retrieved document content as untrusted input.
 - Do not allow prompts to override authorization or system-level constraints.
 - Do not let the LLM directly execute arbitrary SQL or access arbitrary tools.
-- Use allowlisted, narrowly scoped tools with validated arguments.
+- Use allowlisted, narrowly scoped tools with validated arguments. Implement tools as an explicit registry of Python functions with Pydantic-validated arguments, and let the orchestrator call only tools in that registry.
 - Bound model output size, tool-call count, and request duration.
 - Return safe fallbacks when the model fails or policy evidence is missing.
 - Ensure recommendation explanations reflect actual catalog features and constraints.
@@ -820,7 +825,7 @@ Use Spring AI abstractions for the chosen LLM provider, embedding model, vector 
 
 ## 12. Error Handling and Observability
 
-- Use a shared exception model and `@RestControllerAdvice`.
+- Use a shared exception model with global FastAPI exception handlers.
 - Return safe, stable error messages and a request/correlation ID.
 - Distinguish validation, authentication, authorization, not-found, conflict, provider failure, and unexpected server errors.
 - Do not expose stack traces or raw provider errors to end users.
@@ -916,14 +921,17 @@ Use React 19 + Vite with reusable components and a small API client layer.
 | Layer | Technology |
 |---|---|
 | Frontend | React 19, Vite |
-| Backend | Java, Spring Boot 3 |
-| AI integration | Spring AI |
+| Backend | Python 3.12+, FastAPI, Uvicorn |
+| Validation and settings | Pydantic v2, pydantic-settings |
+| Data access | SQLAlchemy 2.0 with a PostgreSQL driver (psycopg) |
+| AI integration | Provider Python SDK, optionally LangChain or LlamaIndex |
 | Database | PostgreSQL |
-| Vector search | PgVector |
-| Database migrations | Flyway |
-| Security | Spring Security, JWT resource-server support or configured identity provider |
-| API documentation | OpenAPI/Swagger |
-| Testing | JUnit, Spring Boot test support; frontend test tooling as selected |
+| Vector search | PgVector (`pgvector` Python package) |
+| Database migrations | Alembic |
+| Security | FastAPI security dependencies, PyJWT, bcrypt password hashing, or a configured identity provider |
+| Document parsing | pypdf or PyMuPDF for PDF, standard parsers for Markdown and JSON, content-type sniffing (for example python-magic) |
+| API documentation | FastAPI OpenAPI schema and Swagger UI |
+| Testing | pytest, httpx/TestClient, a test PostgreSQL instance with PgVector; frontend test tooling as selected |
 | Packaging | Docker Compose for local development/demo |
 
 The brief permits any approved AI model. Select a provider based on availability, structured-output support, embedding support, cost, latency, and hackathon constraints.
@@ -945,20 +953,23 @@ shopsmart-ai/
 │       ├── api/
 │       └── hooks/
 ├── backend/
-│   └── src/main/java/com/shopsmart/
-│       ├── config/
-│       ├── security/
-│       ├── catalog/
-│       ├── cart/
-│       ├── orders/
-│       ├── support/
-│       ├── recommendations/
-│       ├── knowledge/
-│       ├── agents/
-│       ├── audit/
-│       └── common/
+│   ├── app/
+│   │   ├── main.py
+│   │   ├── core/              # settings, security, logging, error handlers
+│   │   ├── db/                # engine, session, base model
+│   │   ├── catalog/           # router, service, repository, models, schemas
+│   │   ├── cart/
+│   │   ├── orders/
+│   │   ├── support/
+│   │   ├── recommendations/
+│   │   ├── knowledge/         # router, ingestion/, retrieval/, service
+│   │   ├── agents/            # tools/, orchestrator/
+│   │   ├── audit/
+│   │   └── common/
+│   ├── alembic/               # migrations
+│   ├── tests/
+│   └── pyproject.toml
 ├── database/
-│   ├── migrations/
 │   └── seed/
 ├── docs/
 │   ├── architecture.md
@@ -969,15 +980,15 @@ shopsmart-ai/
 
 ### 15.3 Configuration
 
-Document required environment variables in `.env.example` without real secrets. Likely values include database URL/username/password, model provider API key, model identifier, embedding model identifier, JWT issuer/JWK configuration, and frontend origin. Exact names depend on the chosen libraries.
+Document required environment variables in `.env.example` without real secrets. Likely values include database URL/username/password, model provider API key, model identifier, embedding model identifier, JWT signing key (or JWK URL), issuer, and audience configuration, and frontend origin. Exact names depend on the chosen libraries.
 
 Provide instructions for:
 1. Starting PostgreSQL with PgVector.
 2. Configuring model credentials.
-3. Applying migrations and loading seed data.
-4. Starting the backend.
+3. Applying Alembic migrations and loading seed data.
+4. Creating the Python virtual environment, installing dependencies, and starting the backend with Uvicorn.
 5. Starting the frontend.
-6. Accessing API documentation.
+6. Accessing API documentation (Swagger UI at `/docs`).
 7. Running tests.
 
 ---
@@ -987,8 +998,8 @@ Provide instructions for:
 This is an estimated plan for five focused development days. It should be adjusted to team size and familiarity with the stack.
 
 ### Day 1 — Foundation
-- Initialize Spring Boot and React projects.
-- Configure PostgreSQL, PgVector, Flyway, and seed data.
+- Initialize the FastAPI project (virtual environment, `pyproject.toml`, linting) and the React project.
+- Configure PostgreSQL, PgVector, Alembic, and seed data.
 - Implement catalog entities, repositories, services, and endpoints.
 - Set up login, JWT issuance, role checks, and seeded users covering the admin role and all three membership tiers.
 
@@ -1061,6 +1072,8 @@ The MVP is considered demo-ready when:
 | Embedding dimension mismatch | Configure vector dimension from the selected embedding model and test ingestion/query consistency |
 | Stale inventory or policy data | Use clear demo data rules, timestamps, effective dates, and immutable document versions |
 | Agent performs unauthorized action | Use narrowly scoped tools, explicit authorization, bounded execution, and audit events |
+| Blocking LLM, embedding, or PDF-parsing calls stall the FastAPI event loop | Use async clients or run blocking work in a threadpool or background task, and set timeouts |
+| Python/FastAPI differs from the brief's recommended Java stack | Confirm with the organizers; keep React, PostgreSQL, and PgVector as recommended |
 
 ---
 
@@ -1095,7 +1108,7 @@ Use only demo policy statements that are present in the seeded knowledge documen
 
 ## 21. Final Product Decision
 
-**Build ShopSmart AI as a React + Spring Boot modular monolith backed by PostgreSQL + PgVector.**
+**Build ShopSmart AI as a React + FastAPI (Python) modular monolith backed by PostgreSQL + PgVector.**
 
 Prioritize these capabilities in order:
 
