@@ -1,4 +1,14 @@
 {
+  "name": "shopsmart-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:backend": "PYTHONPATH=backend backend/.venv/bin/uvicorn app.main:app --reload --port 8000",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "prisma:push": "PATH=\"$PWD/backend/.venv/bin:$PATH\" backend/.venv/bin/prisma db push --schema backend/prisma/schema.prisma",
+    "prisma:studio": "PATH=\"$PWD/backend/.venv/bin:$PATH\" backend/.venv/bin/prisma studio --schema backend/prisma/schema.prisma",
+    "test:backend": "PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/ -v"
+  },
   "devDependencies": {
     "prisma": "^6.19.2"
   },
