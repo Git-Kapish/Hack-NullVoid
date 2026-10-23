@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     # Generative AI (Gemini API)
     GEMINI_API_KEY: Optional[str] = None
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.8-flash"
     EMBED_DIM: int = 768
     USE_FAKE_LLM: bool = False
 
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "backend/.env"),
         env_file_encoding="utf-8",
         extra="ignore"
     )
