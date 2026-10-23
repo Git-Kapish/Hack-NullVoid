@@ -3,27 +3,30 @@ from typing import Optional
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "ShopSmart AI"
+    APP_NAME: str = "ShopSmart AI Backend"
     APP_ENV: str = "development"
     API_V1_PREFIX: str = "/api/v1"
 
     # Database
-    DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/shopsmart_db"
-    TEST_DATABASE_URL: str = "postgresql+psycopg://postgres:postgres@localhost:5432/shopsmart_test_db"
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/shopsmart_db"
 
-    # Security & JWT
-    JWT_SECRET: str = "shopsmart-hackathon-super-secret-key-change-in-production-2026"
-    JWT_ALGORITHM: str = "HS256"
-    JWT_ISSUER: str = "shopsmart-api"
-    JWT_AUDIENCE: str = "shopsmart-web"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours
+    # Clerk Authentication
+    CLERK_SECRET_KEY: Optional[str] = None
+    CLERK_PUBLISHABLE_KEY: Optional[str] = None
+    CLERK_JWKS_URL: Optional[str] = None
+    CLERK_MOCK_AUTH: bool = True  # Allows header/mock token development when external Clerk key not set
 
-    # AI & Embeddings
+    # Inngest Background Workflows
+    INNGEST_APP_ID: str = "shopsmart-backend"
+    INNGEST_EVENT_KEY: Optional[str] = None
+    INNGEST_SIGNING_KEY: Optional[str] = None
+    INNGEST_IS_DEV: bool = True
+
+    # Generative AI (Gemini API)
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-2.5-flash"
-    EMBEDDING_MODEL: str = "text-embedding-004"
     EMBED_DIM: int = 768
-    USE_FAKE_LLM: bool = True
+    USE_FAKE_LLM: bool = False
 
     # Server & CORS
     FRONTEND_ORIGIN: str = "http://localhost:5173"

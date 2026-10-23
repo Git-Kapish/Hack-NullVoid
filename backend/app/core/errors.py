@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from pydantic import ValidationError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -42,10 +43,25 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(request: Request, exc: RequestValidationError):
         request_id = getattr(request.state, "request_id", "unknown")
-        # Format validation error cleanly without leaking internals
         errors = exc.errors()
         first_err = errors[0] if errors else {}
         msg = first_err.get("msg", "Invalid request parameters")
+        loc = " -> ".join(str(l) for l in first_err.get("loc", []))
+        detail = f"{msg} (at {loc})" if loc else msg
+
+        return create_error_response(
+            code="VALIDATION_ERROR",
+            message=detail,
+            request_id=request_id,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+    @app.exception_handler(ValidationError)
+    async def pydantic_validation_exception_handler(request: Request, exc: ValidationError):
+        request_id = getattr(request.state, "request_id", "unknown")
+        errors = exc.errors()
+        first_err = errors[0] if errors else {}
+        msg = first_err.get("msg", "Validation failed")
         loc = " -> ".join(str(l) for l in first_err.get("loc", []))
         detail = f"{msg} (at {loc})" if loc else msg
 
