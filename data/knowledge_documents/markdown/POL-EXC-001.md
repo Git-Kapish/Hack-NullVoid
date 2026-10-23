@@ -1,0 +1,22 @@
+# Product Exchange Policy
+
+- document_id: POL-EXC-001
+- title: Product Exchange Policy
+- document_type: EXCHANGES
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Returns
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Exchange eligibility
+
+## Exchange eligibility
+
+An exchange may be offered for eligible items based on product category, return condition, regional terms, and replacement inventory. Customers should open Order History and select the exchange option if the order supports it. The interface may offer a return instead when the same product or variant is unavailable.
+
+Do not send an item before the system provides a return authorization and shipping instructions. The replacement item may have a different estimated delivery date. Any price difference or change in taxes and shipping must be shown by the checkout or exchange workflow before confirmation.
+
+An exchange request is not complete until the order record confirms the exchange. Customer support can review unusual cases, but neither support nor the assistant should promise an exchange solely because a customer asks for one.

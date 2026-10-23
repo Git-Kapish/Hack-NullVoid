@@ -1,0 +1,20 @@
+# Archived Returns Policy
+
+- document_id: POL-RET-ARCH-001
+- title: Archived Returns Policy
+- document_type: RETURNS
+- version: 2025.2
+- effective_date: 2025-01-01
+- region: US
+- category: Returns
+- membership_tier: ALL
+- status: ARCHIVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Archived return policy — superseded
+
+## Archived return policy — superseded
+
+ARCHIVED DEMO DOCUMENT. This historical version described a 14-day return window for eligible products. It has been superseded by the currently approved returns policy and must not be used to answer present-day customer questions when an applicable approved version exists.
+
+This document is retained solely to test version selection and status filtering. The retrieval service should exclude archived content from ordinary customer-facing policy answers. An administrator reviewing historical policy changes may access it through an explicitly authorized audit workflow.

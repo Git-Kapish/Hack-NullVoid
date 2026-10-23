@@ -19,6 +19,7 @@ from app.routers import (
     dashboard_router,
     admin_products_router,
     ai_router,
+    knowledge_router,
 )
 
 
@@ -68,6 +69,7 @@ app.include_router(support_router, prefix=settings.API_V1_PREFIX)
 app.include_router(dashboard_router, prefix=settings.API_V1_PREFIX)
 app.include_router(admin_products_router, prefix=settings.API_V1_PREFIX)
 app.include_router(ai_router, prefix=settings.API_V1_PREFIX)
+app.include_router(knowledge_router)
 
 
 @app.get("/api/v1/health", status_code=status.HTTP_200_OK, tags=["Health"])

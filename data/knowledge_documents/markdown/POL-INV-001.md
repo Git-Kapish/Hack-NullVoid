@@ -1,0 +1,22 @@
+# Inventory and Availability Policy
+
+- document_id: POL-INV-001
+- title: Inventory and Availability Policy
+- document_type: INVENTORY
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Catalog
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Stock availability
+
+## Stock availability
+
+Catalog availability reflects the inventory state recorded by ShopSmart and may change before checkout. Adding a product to a cart does not reserve inventory unless the checkout flow explicitly confirms a reservation. If stock reaches zero, the product may remain visible but cannot be purchased until inventory becomes available again.
+
+Availability labels are derived from inventory according to the application's configured thresholds. A product labelled LOW_STOCK indicates limited recorded quantity, not a guarantee that the customer can complete checkout. Inventory is validated again during order creation.
+
+The AI assistant must not invent an exact stock count or claim that an item is reserved based on a cart entry. It should query the catalog or inventory service for current demo data and clearly state when live inventory information is unavailable.

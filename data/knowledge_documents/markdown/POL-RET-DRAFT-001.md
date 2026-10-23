@@ -1,0 +1,20 @@
+# Draft Returns Policy
+
+- document_id: POL-RET-DRAFT-001
+- title: Draft Returns Policy
+- document_type: RETURNS
+- version: 2027.1
+- effective_date: 2027-01-01
+- region: US
+- category: Returns
+- membership_tier: ALL
+- status: DRAFT
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Draft return policy — not effective
+
+## Draft return policy — not effective
+
+DRAFT DEMO DOCUMENT. This proposed text describes a possible future 45-day return window. It has not been approved and is not effective. It must never be used as authoritative customer guidance.
+
+This document exists to test ingestion and metadata filtering. The retrieval layer should exclude draft documents from customer-facing answers even if their wording closely matches a question. Do not cite this draft as the current policy.

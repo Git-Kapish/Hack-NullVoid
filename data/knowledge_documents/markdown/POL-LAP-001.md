@@ -1,0 +1,22 @@
+# Laptop Setup and Care Manual
+
+- document_id: POL-LAP-001
+- title: Laptop Setup and Care Manual
+- document_type: PRODUCT_MANUAL
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Product Manuals
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Laptop ventilation, power, and battery
+
+## Laptop ventilation, power, and battery
+
+For initial setup, use the supplied or manufacturer-approved power adapter and install operating-system updates through trusted system settings. Place the laptop on a stable, hard surface and keep ventilation openings clear. Soft bedding or blocked vents can restrict airflow and cause excessive heat.
+
+Battery runtime varies with workload, screen brightness, network use, battery age, and power settings. Advertised maximum runtime should not be treated as a guarantee for every workload. If the laptop becomes unusually hot, emits an unusual odor, or shows battery swelling, stop using it and contact authorized service.
+
+Use only compatible accessories and consult the exact model's manual for supported memory, storage, ports, and charging behavior. This general manual cannot confirm a specification for an individual SKU unless that SKU's product record or manufacturer document provides it.

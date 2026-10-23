@@ -13,12 +13,12 @@ class KnowledgeDocument(Base):
     title = Column(String(255), nullable=False)
     document_type = Column(String(20), nullable=False)  # PDF, MARKDOWN, JSON
     version = Column(String(50), nullable=False)
-    effective_date = Column(Date, nullable=False, default=date.today)
-    region = Column(String(50), nullable=False, default="ALL")
-    category = Column(String(100), nullable=False, default="GENERAL")
-    membership_tier = Column(String(50), nullable=True)  # NULL applies to all, else BASIC, PRIME, PREMIUM
-    status = Column(String(50), nullable=False, default="PUBLISHED")  # DRAFT, PUBLISHED, SUPERSEDED, INACTIVE, FAILED
-    uploaded_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    effective_date = Column(Date, nullable=False, default=date.today, index=True)
+    region = Column(String(50), nullable=False, default="ALL", index=True)
+    category = Column(String(100), nullable=False, default="GENERAL", index=True)
+    membership_tier = Column(String(50), nullable=True, index=True)  # NULL applies to all, else BASIC, PRIME, PREMIUM
+    status = Column(String(50), nullable=False, default="PUBLISHED", index=True)  # DRAFT, PUBLISHED, SUPERSEDED, INACTIVE, FAILED
+    uploaded_by = Column(String(100), nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     __table_args__ = (

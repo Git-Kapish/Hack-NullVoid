@@ -1,0 +1,22 @@
+# Returns and Exchanges Policy
+
+- document_id: POL-RET-001
+- title: Returns and Exchanges Policy
+- document_type: RETURNS
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Returns
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Eligibility and return process
+
+## Eligibility and return process
+
+Customers may request a return within 30 calendar days after delivery for eligible products. The order must be associated with the customer's account and proof of purchase must be available. Items must be returned with required accessories and, where supplied, the original packaging. A return request is not approved until the order page or support team confirms authorization.
+
+Products that show damage caused after delivery, missing serial labels, signs of unauthorized repair, or misuse may be ineligible for a standard return. Hygiene-sensitive, personalized, digital, and final-sale products may have separate exclusions when those exclusions are shown on the product page before purchase. If an item arrived damaged or incorrect, use the damaged-item process rather than describing the issue as a change-of-mind return.
+
+Start from Order History, select the order, choose the eligible item, and follow the return instructions. Do not ship an item before receiving the return authorization and destination instructions. Keep the tracking receipt until the return is completed.

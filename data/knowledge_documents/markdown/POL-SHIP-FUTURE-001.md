@@ -1,0 +1,20 @@
+# Future Shipping Policy
+
+- document_id: POL-SHIP-FUTURE-001
+- title: Future Shipping Policy
+- document_type: SHIPPING
+- version: 2027.1
+- effective_date: 2027-01-01
+- region: US
+- category: Shipping
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Future-effective shipping terms
+
+## Future-effective shipping terms
+
+FUTURE-EFFECTIVE DEMO DOCUMENT. These proposed shipping terms are scheduled to take effect on 2027-01-01. They must not be applied to questions about orders or dates before the effective date. The current applicable policy must be retrieved for present-day questions.
+
+This document exists to test effective-date filtering. If a question explicitly concerns a future order after the effective date, the application may consider this document only after applying its normal approval, region, category, and date rules.

@@ -1,0 +1,20 @@
+{
+  "document_id": "POL-DLV-001",
+  "title": "Missing Package and Delivery Issue Policy",
+  "document_type": "DELIVERY_ISSUES",
+  "version": "2026.1",
+  "effective_date": "2026-01-01",
+  "region": "US",
+  "category": "Shipping",
+  "membership_tier": null,
+  "status": "APPROVED",
+  "uploaded_by": "USR001",
+  "data_status": "SYNTHETIC_DEMO",
+  "section": "Package marked delivered but missing",
+  "sections": [
+    {
+      "section_title": "Package marked delivered but missing",
+      "content": "If tracking says Delivered but the customer cannot find the package, check the delivery location, household members, building reception, parcel lockers, and any carrier delivery photo available. Allow time for a carrier scan to be corrected if the carrier guidance recommends it, then contact support if the package remains missing.\n\nInclude the order number and confirm the delivery address through the authenticated support flow. Do not place the full address or personal details in a public forum. Support may investigate carrier events and fulfillment records before determining an appropriate resolution.\n\nA delivery scan alone does not prove that a refund or replacement has been approved. The assistant must not promise a compensation amount, state a live carrier location without a supported data source, or reveal a recipient's address to an unrelated user."
+    }
+  ]
+}

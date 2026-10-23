@@ -1,0 +1,22 @@
+# Order and Shipment Status Guide
+
+- document_id: POL-ORD-001
+- title: Order and Shipment Status Guide
+- document_type: ORDER_STATUS
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Orders
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Meaning of order statuses
+
+## Meaning of order statuses
+
+Processing means the order has been accepted and is being prepared; it does not mean the parcel has shipped. Shipped means fulfillment has handed the parcel to the delivery process or recorded dispatch. Out for Delivery means the latest carrier event indicates an attempted final delivery route. Delivered means a delivery event was recorded, but it does not resolve disputes about whether the package was received by the intended customer.
+
+Shipment events can be delayed or arrive out of order because carrier updates are not always instantaneous. Use the latest valid event timestamp from the order record rather than guessing a live location. ShopSmart's demo environment may simulate shipment events, so the interface should identify simulated tracking when applicable.
+
+Customers may view only orders associated with their authenticated account. Support and AI tools must enforce ownership checks before returning order details. The assistant must not disclose another customer's name, address, order contents, or tracking history.

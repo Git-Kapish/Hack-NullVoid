@@ -1,0 +1,20 @@
+{
+  "document_id": "POL-AUD-001",
+  "title": "Headphone and Speaker Care Manual",
+  "document_type": "PRODUCT_MANUAL",
+  "version": "2026.1",
+  "effective_date": "2026-01-01",
+  "region": "US",
+  "category": "Product Manuals",
+  "membership_tier": null,
+  "status": "APPROVED",
+  "uploaded_by": "USR001",
+  "data_status": "SYNTHETIC_DEMO",
+  "section": "Pairing and safe listening",
+  "sections": [
+    {
+      "section_title": "Pairing and safe listening",
+      "content": "Pair headphones or speakers using the model's documented pairing procedure. If pairing fails, confirm that the device is charged, remove obsolete pairings if appropriate, and restart the connection process. Compatibility and available codecs vary by source device and audio product.\n\nKeep audio equipment dry unless the published rating explicitly supports water exposure. Clean ear tips and surfaces using the manufacturer's recommended method. Prolonged listening at high volume may damage hearing; use a comfortable volume and take listening breaks.\n\nBattery life and wireless range vary with volume, radio interference, connected devices, and battery age. Do not infer a guaranteed runtime from a general product category description; use the specification for the exact model."
+    }
+  ]
+}

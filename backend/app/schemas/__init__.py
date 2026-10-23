@@ -33,6 +33,15 @@ from app.schemas.ai import (
     ChatRequest,
     ChatResponse,
 )
+from app.schemas.knowledge import (
+    KnowledgeSourceItem,
+    KnowledgeAskRequest,
+    KnowledgeAskResponse,
+    DocumentUploadMetadata,
+    ChunkResponse,
+    DocumentResponse,
+    DocumentDetailResponse,
+)
 
 __all__ = [
     "ErrorResponse",

@@ -1,0 +1,20 @@
+{
+  "document_id": "POL-REF-001",
+  "title": "Refund Timeline Policy",
+  "document_type": "REFUNDS",
+  "version": "2026.1",
+  "effective_date": "2026-01-01",
+  "region": "US",
+  "category": "Refunds",
+  "membership_tier": null,
+  "status": "APPROVED",
+  "uploaded_by": "USR001",
+  "data_status": "SYNTHETIC_DEMO",
+  "section": "Inspection and refund timing",
+  "sections": [
+    {
+      "section_title": "Inspection and refund timing",
+      "content": "For an approved return, ShopSmart initiates a refund after the returned item is received and any required inspection is completed. The normal target is 5–10 business days after inspection for ShopSmart to initiate the refund. The customer's bank or payment provider may take additional time to post the credit; ShopSmart cannot guarantee the date on which an external provider displays the funds.\n\nRefunds are normally sent to the original payment method. Shipping charges are refunded when the return results from a ShopSmart fulfillment error or when the applicable order terms explicitly provide for a shipping refund. Promotional discounts, partial returns, taxes, and bundled items can affect the final amount.\n\nA return request, shipping label, or carrier delivery scan does not by itself prove that a refund has been approved. Customers can view the current status in Order History or open a support ticket with the order number. Support must review exceptions; the assistant must not promise a specific refund date or amount unless an authorized backend record confirms it."
+    }
+  ]
+}

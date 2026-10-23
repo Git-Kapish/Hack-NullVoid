@@ -1,0 +1,22 @@
+# Camera and Lens Care Manual
+
+- document_id: POL-CAM-001
+- title: Camera and Lens Care Manual
+- document_type: PRODUCT_MANUAL
+- version: 2026.1
+- effective_date: 2026-01-01
+- region: US
+- category: Product Manuals
+- membership_tier: ALL
+- status: APPROVED
+- uploaded_by: USR001
+- data_status: SYNTHETIC_DEMO
+- section: Lens, battery, and accessory care
+
+## Lens, battery, and accessory care
+
+Use batteries and memory cards that meet the camera's model-specific requirements. Keep the lens cap on when the camera is not in use and avoid touching optical surfaces. Clean lenses only with suitable materials and the manufacturer's recommended procedure.
+
+Lens and accessory compatibility depends on mount, sensor format, firmware, and model generation. Do not assume that two lenses are compatible because they share a brand. Store equipment in a dry, protected environment and follow the manual's temperature and moisture guidance.
+
+If the camera reports an error, record the exact message and consult the model-specific troubleshooting instructions. The assistant should not invent a compatibility claim or repair procedure that is absent from the available manual.

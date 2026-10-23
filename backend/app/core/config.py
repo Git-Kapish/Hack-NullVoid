@@ -22,11 +22,16 @@ class Settings(BaseSettings):
     INNGEST_SIGNING_KEY: Optional[str] = None
     INNGEST_IS_DEV: bool = True
 
-    # Generative AI (Gemini API)
+    # Generative AI (Gemini API) & RAG Configuration
     GEMINI_API_KEY: Optional[str] = None
     GEMINI_MODEL: str = "gemini-3.8-flash"
+    EMBEDDING_MODEL: str = "text-embedding-004"
     EMBED_DIM: int = 768
     USE_FAKE_LLM: bool = False
+    RAG_SIMILARITY_THRESHOLD_HIGH: float = 0.40
+    RAG_SIMILARITY_THRESHOLD_MED: float = 0.25
+    RAG_TOP_K: int = 5
+    RAG_MAX_UPLOAD_SIZE_BYTES: int = 2 * 1024 * 1024  # 2MB limit
 
     # Server & CORS
     FRONTEND_ORIGIN: str = "http://localhost:5173"
