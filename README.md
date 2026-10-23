@@ -1,4 +1,4 @@
-# ShopSmart AI — Autonomous E-Commerce & Intelligence Platform
+# ShopSmart AI — Autonomous E-Commerce and Intelligence Platform
 
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111%2B-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -6,399 +6,406 @@
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-336791.svg?logo=postgresql&logoColor=white)](https://github.com/pgvector/pgvector)
 [![Prisma](https://img.shields.io/badge/Prisma-6.19-2D3748.svg?logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-3.8%20Flash-4285F4.svg?logo=google&logoColor=white)](https://aistudio.google.com/)
-[![Clerk](https://img.shields.io/badge/Clerk-Auth-6C47FF.svg?logo=clerk&logoColor=white)](https://clerk.com/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Flash-4285F4.svg?logo=google&logoColor=white)](https://aistudio.google.com/)
+[![Clerk](https://img.shields.io/badge/Clerk-Authentication-6C47FF.svg?logo=clerk&logoColor=white)](https://clerk.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **ShopSmart AI** is an enterprise-grade autonomous commerce platform combining deterministic catalog search, grounded multi-agent workflows, and high-precision **Retrieval-Augmented Generation (RAG)** powered by PostgreSQL + pgvector and Google Gemini. Designed with the minimalist, Swiss-typography aesthetic of [wrapper.framer.ai](https://wrapper.framer.ai/).
+ShopSmart AI is an e-commerce and intelligence platform that combines structured product discovery, AI-assisted recommendations, and a policy question-answering system built with Retrieval-Augmented Generation (RAG). It is designed to keep language-model responses grounded in catalog data and approved policy documents, while making relevant sources and AI decisions traceable.
 
----
+## Contents
 
-## 📑 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Repository Structure](#repository-structure)
+- [Getting Started](#getting-started)
+- [RAG Pipeline](#rag-pipeline)
+- [API Reference](#api-reference)
+- [Testing and Evaluation](#testing-and-evaluation)
+- [Demo Personas](#demo-personas)
+- [Interface and Design](#interface-and-design)
+- [License](#license)
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [System Architecture](#-system-architecture)
-- [Tech Stack](#-tech-stack)
-- [Repository Structure](#-repository-structure)
-- [Getting Started](#-getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Environment Variables](#environment-variables)
-  - [Database Setup with Docker](#database-setup-with-docker)
-  - [Backend Setup](#backend-setup)
-  - [Frontend Setup](#frontend-setup)
-- [RAG Policy & Knowledge Pipeline](#-rag-policy--knowledge-pipeline)
-- [API Reference](#-api-reference)
-- [Testing & Evaluation](#-testing--evaluation)
-- [Demo Personas](#-demo-personas)
-- [Design Aesthetics](#-design-aesthetics)
+## Overview
 
----
+Online shoppers often need to compare many products, understand eligibility and return policies, and get trustworthy answers without being misled by fabricated prices, inventory, or policy details.
 
-## 🌟 Overview
+ShopSmart AI addresses these needs through a separation between language-model interpretation and application data:
 
-Modern online shoppers struggle with information overload, ambiguous return/warranty policies, and robotic chatbots that hallucinate inventory and prices. 
+- **Grounded product recommendations:** The model interprets a natural-language request and its constraints; candidate products are selected from the catalog rather than invented by the model.
+- **Policy-aware RAG:** PDF, Markdown, and JSON documents are parsed, chunked, embedded, and retrieved from PostgreSQL with pgvector. Answers use retrieved evidence and provide document-level attribution.
+- **Commerce workflows:** The platform includes catalog browsing, product comparisons, cart and wishlist interactions, and simulated order and shipment tracking.
+- **Auditable AI decisions:** Decision logs record information such as parsed intent, candidates, scores, latency, and retrieved chunk identifiers.
 
-**ShopSmart AI** solves this by establishing a **deterministic boundary** between language models and enterprise data:
-1. **Zero-Hallucination Catalog Assistant**: Natural-language intent and budget constraints are extracted by LLMs, but product recommendations are retrieved deterministically from verified catalog tables.
-2. **Strictly Grounded RAG Knowledge Base**: Internal policy PDFs, Markdown docs, and JSON specifications are parsed, chunked, and embedded into a 768-dimensional pgvector index. The system synthesizes answers **only** when evidence meets calibrated similarity thresholds (`≥ 0.25` medium, `≥ 0.40` high) and cites exact `(Document, Section, Version)` sources. If evidence is missing, it safely declines without hallucination.
-3. **Simulated Lifecycle Workflows**: Complete cart, checkout, order state machine, and shipment tracking timelines.
-4. **Auditability & Explainability**: Every AI inference logs intent, candidates, scores, execution latency, and retrieved chunk IDs to `ai_decision_logs`.
+The project includes both a web interface and a modular FastAPI backend, with a local PostgreSQL development environment supported by Docker Compose.
 
----
+## Features
 
-## ✨ Key Features
+### Product discovery and comparison
 
-### 🛍️ E-Commerce Storefront
-- **Catalog Explorer**: Category hierarchy, multi-facet filtering (brand, price range, stock status, ratings), full-text search, and pagination.
-- **Side-by-Side Product Comparison**: Compare specifications, dimensions, warranties, and pricing for 2 to 4 products simultaneously.
-- **Cart & Wishlist**: Persistent cart, stock validation, and instant wishlist toggles.
-- **Order Tracking**: Visual shipment timeline (`PLACED` ➔ `PROCESSING` ➔ `SHIPPED` ➔ `OUT_FOR_DELIVERY` ➔ `DELIVERED`).
+- Browse a categorized product catalog.
+- Search, paginate, sort, and filter by attributes such as brand, price, availability, and rating.
+- Compare two to four products side by side, including specifications, dimensions, warranty information, and prices.
+- Add items to a cart with inventory validation and manage a wishlist.
+- View order details and a simulated shipment lifecycle.
 
-### 🤖 Autonomous AI Shopping Assistant (`POST /api/v1/ai/recommend`)
-- Natural-language query parsing (e.g., *"Find me lightweight noise-cancelling headphones under $250 with at least 20 hours battery"*).
-- Returns structured JSON response:
-  - `interpretedRequirement`: Summarized customer intent and parsed constraints.
-  - `budget`: Extracted currency and budget ceiling.
-  - `recommendations[]`: Top candidate items with explicit grounded reasoning.
-  - `clarifyingQuestion`: Proactive follow-up if requirements are ambiguous.
+### AI shopping assistant
 
-### 📚 RAG Knowledge & Policy Engine (`POST /knowledge/ask`)
-- **Multi-Format Ingestion**: Ingests PDF (`pypdf`), Markdown (heading splitter), and JSON policy documents into transactional records.
-- **pgvector Cosine Search**: Efficient vector similarity search against 768-dimensional text embeddings (`text-embedding-004`).
-- **SQL Pre-Filtering**: Restricts chunk retrieval by document status (`PUBLISHED`), effective dates (`effective_date <= CURRENT_DATE`), regional applicability, category, and customer membership tiers (**Basic**, **Prime**, **Premium VIP**).
-- **Safe Fallback & Abstention**: Rejects unanswerable queries before calling the generative LLM if similarity is below calibrated thresholds.
-- **Traceable Attribution**: Returns citations with document title, section heading, version number, and chunk IDs.
+The recommendation endpoint, `POST /api/v1/ai/recommend`, accepts natural-language shopping requirements, such as a budget, desired features, or minimum specifications.
 
-### 🛡️ Security & Enterprise Governance
-- **Authentication**: Clerk JWT bearer token authentication with claims validation, plus local mock authorization bypass for offline testing.
-- **Role-Based Access Control (RBAC)**: Fine-grained permissions for Customers, Prime VIP members, and Store Administrators.
-- **Audit Logging**: Full traceability with `ai_decision_logs` and `audit_events`.
+Its structured response can include:
 
----
+- `interpretedRequirement`: A summary of the customer's request and extracted constraints.
+- `budget`: The parsed budget and currency, when provided.
+- `recommendations`: Candidate catalog products with reasons tied to product attributes.
+- `clarifyingQuestion`: A follow-up question when additional information is needed.
 
-## 🏗️ System Architecture
+### RAG knowledge and policy assistant
+
+The knowledge engine answers questions using ingested policy documents and supports:
+
+- PDF, Markdown, and JSON document ingestion.
+- Text chunking that preserves section context.
+- Vector similarity search using pgvector and 768-dimensional text embeddings.
+- SQL pre-filtering based on publication status, effective date, region, product category, and membership tier.
+- Confidence thresholds and safe abstention when retrieved evidence is insufficient.
+- Source attribution containing document title, section, version, and chunk identifiers.
+
+### Authentication, authorization, and auditing
+
+- Clerk JWT bearer-token authentication and claims validation.
+- A configurable mock-authentication mode for local development and offline testing.
+- Role-based permissions for customers, membership tiers, and administrators.
+- Audit records for AI decisions and relevant system events.
+- Administrative interfaces for document ingestion and audit inspection.
+
+## Architecture
+
+ShopSmart AI is organized as a React frontend, a modular FastAPI backend, AI and embedding services, and a PostgreSQL persistence layer.
 
 ```mermaid
 flowchart TB
-    subgraph Client["Frontend Layer (React 19 + Vite)"]
-        UI[Wrapper Framer Web App]
-        CatalogUI[Catalog & Compare Tray]
-        AssistantUI[Autonomous Shopping Chat]
-        PolicyUI[RAG Policy & Knowledge Assistant]
-        AdminUI[Admin Documents & Audit Portal]
+    subgraph Client["Frontend: React and Vite"]
+        UI["Web application"]
+        Catalog["Catalog and comparison"]
+        Assistant["AI shopping assistant"]
+        Knowledge["Policy knowledge assistant"]
+        Admin["Administration and audit portal"]
     end
 
-    subgraph API["Backend Layer (FastAPI Modular Monolith)"]
-        Router[FastAPI API Gateway /api/v1]
-        Auth[Clerk Auth & RBAC Middleware]
-        CatalogSvc[Catalog & Search Service]
-        AISvc[AI Shopping Orchestrator]
-        RAGSvc[RAG Ingestion & Retrieval Service]
-        OrderSvc[Order & Simulation Engine]
+    subgraph Backend["Backend: FastAPI"]
+        API["API routes"]
+        Auth["Authentication and RBAC"]
+        CatalogSvc["Catalog service"]
+        AISvc["AI recommendation service"]
+        RAGSvc["RAG ingestion and retrieval"]
+        Orders["Cart, orders, and shipment simulation"]
     end
 
-    subgraph AI["AI & Embedding Services"]
-        Gemini[Google Gemini 3.8 Flash]
-        Embeddings[Text Embedding 004 (768-dim)]
-        FakeLLM[Deterministic FakeLLM (Offline Benchmark)]
+    subgraph AI["AI services"]
+        Gemini["Google Gemini"]
+        Embeddings["Text embeddings"]
+        FakeLLM["Deterministic FakeLLM"]
     end
 
-    subgraph Data["Persistence Layer"]
-        PG[(PostgreSQL 16)]
-        PGVector[(pgvector Extension)]
-        Prisma[Prisma ORM / SQLAlchemy Core]
+    subgraph Storage["Persistence"]
+        PostgreSQL[("PostgreSQL 16")]
+        Vector["pgvector"]
     end
 
-    UI --> Router
-    Router --> Auth
+    UI --> API
+    Catalog --> API
+    Assistant --> API
+    Knowledge --> API
+    Admin --> API
+    API --> Auth
     Auth --> CatalogSvc
     Auth --> AISvc
     Auth --> RAGSvc
-    Auth --> OrderSvc
-
-    CatalogSvc --> Prisma --> PG
-    OrderSvc --> Prisma --> PG
-
+    Auth --> Orders
+    CatalogSvc --> PostgreSQL
+    Orders --> PostgreSQL
     RAGSvc --> Embeddings
-    RAGSvc --> PGVector
+    RAGSvc --> Vector
     RAGSvc --> Gemini
-
     AISvc --> CatalogSvc
     AISvc --> Gemini
+    FakeLLM -. "Offline tests" .-> AISvc
 ```
 
----
+The catalog and order flows use application data for product and transaction state. The RAG service retrieves relevant policy chunks before producing an answer. A deterministic FakeLLM mode is available for offline testing and benchmarking.
 
-## 💻 Tech Stack
+## Technology Stack
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React 19, Vite 8, React Router v7, Lucide Icons, Geist / Geist Mono typography |
-| **Styling** | Vanilla CSS Design System inspired by `wrapper.framer.ai` (Glassmorphism, Bento Grid, Dark/Light modes) |
-| **Backend** | Python 3.12+, FastAPI, Uvicorn, Pydantic v2, Pydantic Settings |
-| **Database & ORM** | PostgreSQL 16, `pgvector`, Prisma ORM (Python Client), SQLAlchemy Core |
-| **AI & Embeddings** | Google Gemini (`google-genai`), `text-embedding-004` (768 dimensions), FakeLLM offline mock engine |
-| **Authentication** | Clerk (`clerk-backend-api`, `@clerk/react`), JWT bearer tokens, mock persona bypass |
-| **Background Jobs** | Inngest (`inngest.fast_api`) |
-| **Document Parsing**| `pypdf` (PDF), Python Markdown heading splitter, JSON structured parser |
-| **Testing** | `pytest`, `pytest-asyncio`, `httpx` |
+| Frontend | React 19, Vite, React Router, Lucide |
+| Styling | Vanilla CSS, Geist and Geist Mono typography, dark and light themes |
+| Backend | Python 3.12+, FastAPI, Uvicorn, Pydantic v2 |
+| Database | PostgreSQL 16, pgvector |
+| Data access | Prisma schema and client, SQLAlchemy Core |
+| AI and embeddings | Google Gemini via `google-genai`, 768-dimensional text embeddings, deterministic FakeLLM |
+| Authentication | Clerk, JWT bearer tokens, mock-auth mode |
+| Background jobs | Inngest |
+| Document parsing | pypdf, Markdown heading splitter, JSON parser |
+| Testing | pytest, pytest-asyncio, httpx |
+| Local infrastructure | Docker Compose |
 
----
+## Repository Structure
 
-## 📂 Repository Structure
-
-```
+```text
 Hack-NullVoid/
-├── .env.example                     # Environment variables template
-├── docker-compose.yml               # Local PostgreSQL 16 + pgvector container
-├── PRD.md                           # Comprehensive Product Requirements Document
-├── design.md                        # Architecture & technical specification
-├── shopsmart-ai-4-hour-plan.md      # Implementation roadmap
-│
-├── backend/                         # FastAPI Modular Monolith
+├── .env.example
+├── docker-compose.yml
+├── PRD.md
+├── design.md
+├── shopsmart-ai-4-hour-plan.md
+├── backend/
 │   ├── app/
-│   │   ├── ai/                      # LLM clients, prompt engineering, grounded schemas
-│   │   ├── core/                    # App config, database connections, error handlers, middleware
-│   │   ├── models/                  # SQLAlchemy / pgvector entity definitions
-│   │   ├── routers/                 # API route controllers (catalog, AI, knowledge, orders, auth)
-│   │   ├── schemas/                 # Pydantic request / response contracts
-│   │   ├── services/                # Business logic (RAG service, document parser, catalog)
-│   │   └── main.py                  # FastAPI application entrypoint & lifespan
+│   │   ├── ai/              # LLM clients, prompts, and grounded schemas
+│   │   ├── core/            # Configuration, database, errors, middleware
+│   │   ├── models/          # Data and pgvector models
+│   │   ├── routers/         # API route controllers
+│   │   ├── schemas/         # Pydantic request and response models
+│   │   ├── services/        # Catalog, RAG, parsing, and business logic
+│   │   └── main.py          # FastAPI application entry point
 │   ├── prisma/
-│   │   └── schema.prisma            # Prisma schema (Products, Users, Orders, RAG models)
+│   │   └── schema.prisma
 │   ├── scripts/
-│   │   ├── seed_products.py         # Catalog dataset seeder
-│   │   └── seed_rag_documents.py    # Policy documents vector seeder
-│   ├── tests/                       # Unit, integration, and benchmark tests
-│   └── requirements.txt             # Backend dependencies
-│
-├── frontend/                        # React 19 Single Page Application
+│   │   ├── seed_products.py
+│   │   └── seed_rag_documents.py
+│   ├── tests/
+│   └── requirements.txt
+├── frontend/
 │   ├── src/
-│   │   ├── api/                     # Axios / fetch clients for backend endpoints
-│   │   ├── assets/                  # High-resolution executive portraits & SVG graphics
+│   │   ├── api/
+│   │   ├── assets/
 │   │   ├── components/
-│   │   │   ├── Navbar.jsx           # Wrapper Framer floating header & theme toggle
-│   │   │   ├── Footer.jsx           # Enterprise footer & live system status
-│   │   │   ├── AdminKnowledgeTab.jsx# Document upload form & ingestion table
-│   │   │   └── commerce/            # Compare tray, product cards, shipment timelines
 │   │   ├── pages/
-│   │   │   ├── Home.jsx             # Wrapper Framer landing page (mockup, bento, stories, FAQ)
-│   │   │   ├── Catalog.jsx          # Filterable product discovery
-│   │   │   ├── Assistant.jsx        # Conversational shopping assistant
-│   │   │   ├── KnowledgePage.jsx    # Customer RAG policy assistant & demo query chips
-│   │   │   ├── Orders.jsx           # Simulated order tracking
-│   │   │   └── Compare.jsx          # Side-by-side product comparisons
 │   │   └── styles/
-│   │       └── index.css            # Wrapper design tokens, ambient glow, pill buttons
-│   └── package.json                 # Frontend dependencies
-│
+│   └── package.json
 ├── data/
-│   └── knowledge_documents/         # Ingestion policies (PDF, Markdown, JSON)
-│       ├── pdf/                     # Warranty and return PDF documents
-│       ├── markdown/                # Markdown shipping & tier policies
-│       └── json/                    # Structured FAQ and return matrix JSON
-│
+│   └── knowledge_documents/
+│       ├── pdf/
+│       ├── markdown/
+│       └── json/
 └── tests/
-    └── rag_evaluation.json          # 89-case comprehensive RAG evaluation benchmark
+    └── rag_evaluation.json
 ```
 
----
+## Getting Started
 
-## 🚀 Getting Started
+Follow these steps to run the platform locally. Run commands from the indicated directories and ensure the database is available before starting the backend.
 
 ### Prerequisites
 
-- **Docker Desktop** (for PostgreSQL + pgvector)
-- **Python 3.12+**
-- **Node.js 18+** & **npm**
+Install the following tools:
 
----
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) for PostgreSQL and pgvector.
+- [Python 3.12 or later](https://www.python.org/downloads/).
+- [Node.js and npm](https://nodejs.org/).
+- A Google Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey), unless using the fake LLM mode.
 
-### 1. Environment Variables
+### 1. Configure environment variables
 
-Copy the template file to `.env`:
+From the repository root, copy the example configuration:
+
+**Windows PowerShell**
+
+```powershell
+Copy-Item .env.example .env
+Copy-Item .env.example backend/.env
+```
+
+**Linux or macOS**
 
 ```bash
-# In workspace root
 cp .env.example .env
-
-# And copy to backend directory
 cp .env.example backend/.env
 ```
 
-Key environment configurations:
-- `GEMINI_API_KEY`: Your Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
-- `USE_FAKE_LLM`: Set to `true` for offline/deterministic test runs without API quotas; `false` to use live Gemini.
-- `CLERK_MOCK_AUTH`: Set to `true` for easy local development without configuring Clerk credentials.
+Review the generated files and configure values for your environment. Important settings include:
 
----
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | API key used for Gemini requests |
+| `USE_FAKE_LLM` | Enables deterministic offline mode when set to `true`; use `false` for live Gemini requests |
+| `CLERK_MOCK_AUTH` | Enables mock authentication for local development when set to `true` |
 
-### 2. Database Setup with Docker
+For real authentication, configure the Clerk credentials required by the application. Do not commit secrets or populated environment files.
 
-Start the PostgreSQL 16 container with the `pgvector` extension pre-installed:
+### 2. Start PostgreSQL
+
+Start the database service from the repository root:
 
 ```bash
 docker-compose up -d db
 ```
 
-Verify that the database is running:
+Confirm that the container is running:
+
 ```bash
 docker ps
-# Output should show container `shopsmart-db` listening on port 5432
 ```
 
----
+The configured PostgreSQL service should be available on port `5432`. If your local setup uses different credentials or ports, make sure the backend database connection settings match the Docker Compose configuration.
 
-### 3. Backend Setup
+### 3. Set up the backend
 
-1. **Create and activate a Python virtual environment**:
-   ```bash
-   # Windows PowerShell
-   cd backend
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
+Create and activate a virtual environment.
 
-   # Linux / macOS
-   cd backend
-   python3 -m venv .venv
-   source .venv/bin/activate
-   ```
+**Windows PowerShell**
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
 
-3. **Push Prisma schema to the database**:
-   ```bash
-   prisma db push --schema prisma/schema.prisma
-   ```
+**Linux or macOS**
 
-4. **Seed catalog and RAG policy documents**:
-   ```bash
-   # Seed 50+ categorized products
-   python scripts/seed_products.py
-
-   # Seed RAG policy documents (PDF, Markdown, JSON) into pgvector
-   python scripts/seed_rag_documents.py
-   ```
-
-5. **Start the FastAPI development server**:
-   ```bash
-   uvicorn app.main:app --reload --port 8000
-   ```
-   The API will be available at: **`http://localhost:8000`**  
-   Interactive Swagger documentation: **`http://localhost:8000/docs`**
-
----
-
-### 4. Frontend Setup
-
-1. **Navigate to the frontend folder and install packages**:
-   ```bash
-   cd ../frontend
-   npm install
-   ```
-
-2. **Start the Vite development server**:
-   ```bash
-   npm run dev
-   ```
-   Open your browser at: **`http://localhost:5173`**
-
-3. **Validate production bundle**:
-   ```bash
-   npm run build
-   ```
-
----
-
-## 🔍 RAG Policy & Knowledge Pipeline
-
-The RAG pipeline strictly follows the requirements in **PRD.md (§6.4, §8.3, §10)**:
-
-### Ingestion Pipeline
-- **Validation**: Strict file sniffing (validates `%PDF-` magic bytes, JSON syntax, UTF-8 Markdown; rejects null bytes and files `> 2MB`).
-- **Version Immutability**: Enforces unique `(title, version)` constraint. Uploading a document with an existing title and version raises an HTTP `409 Conflict`.
-- **Chunking**: Splits documents into ~800 character passages with ~100 character overlap, preserving section headings.
-
-### Retrieval & Grounding
-- **Embedding**: Generates 768-dimensional embeddings via `text-embedding-004`.
-- **Pre-Filtering**: Applies SQL constraints before semantic similarity ranking:
-  - `status IN ('PUBLISHED', 'APPROVED')`
-  - `effective_date <= CURRENT_DATE`
-  - Optional `region`, `category`, and `membership_tier` filters.
-- **Calibrated Thresholds**:
-  - `similarity >= 0.40`: **HIGH** confidence.
-  - `0.25 <= similarity < 0.40`: **MEDIUM** confidence.
-  - `similarity < 0.25`: **LOW** confidence ➔ **Safe abstention** (*"I do not have sufficient policy information..."*).
-
----
-
-## 📡 API Reference
-
-Interactive OpenAPI documentation is hosted at `http://localhost:8000/docs`. Key routes:
-
-| Method | Path | Description | Access |
-|---|---|---|---|
-| `GET` | `/api/v1/health` | Service health check and dependency status | Public |
-| `GET` | `/api/v1/products` | Paginated catalog search with filters and sorting | Public |
-| `GET` | `/api/v1/products/{id}` | Product details with specs and images | Public |
-| `GET` | `/api/v1/categories` | Complete category hierarchy | Public |
-| `POST`| `/api/v1/ai/recommend` | Natural-language product recommendation | Customer |
-| `POST`| `/knowledge/ask` | RAG policy question answering | Public / Customer |
-| `POST`| `/api/v1/admin/knowledge/documents` | Multipart document ingestion (PDF, MD, JSON) | Admin |
-| `GET` | `/api/v1/admin/knowledge/documents` | List ingested documents and chunks | Admin |
-| `GET` | `/api/v1/orders` | Customer order history | Customer |
-| `GET` | `/api/v1/orders/{id}` | Order details with shipment simulation timeline | Customer |
-| `POST`| `/api/v1/cart` | Add items to cart with inventory check | Customer |
-| `GET` | `/api/v1/admin/audit/decisions` | AI decision and RAG retrieval audit logs | Admin |
-
----
-
-## 🧪 Testing & Evaluation
-
-### 1. Run Backend Test Suite
 ```bash
 cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the Python dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Apply the Prisma schema to the configured database:
+
+```bash
+prisma db push --schema prisma/schema.prisma
+```
+
+Seed the product catalog and policy documents:
+
+```bash
+python scripts/seed_products.py
+python scripts/seed_rag_documents.py
+```
+
+Start the development server:
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+The backend runs at `http://localhost:8000`. Interactive API documentation is available at `http://localhost:8000/docs`.
+
+### 4. Set up the frontend
+
+Open a separate terminal and navigate to the frontend directory from the repository root:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Vite will print the local development URL, typically `http://localhost:5173`.
+
+To verify that the production bundle can be generated, run:
+
+```bash
+npm run build
+```
+
+## RAG Pipeline
+
+The RAG workflow is designed to keep policy answers grounded in versioned documents and applicable metadata.
+
+### Document ingestion
+
+1. **Validate input:** Check file format and content. PDF files are validated using their signature; JSON must parse correctly; Markdown must be valid UTF-8. The documented policy rejects null bytes and files larger than 2 MB.
+2. **Preserve versions:** A document title and version pair is unique. Attempting to upload an existing pair returns an HTTP `409 Conflict`.
+3. **Chunk content:** Split documents into passages of approximately 800 characters with around 100 characters of overlap, preserving section headings.
+4. **Generate embeddings:** Create 768-dimensional vectors for retrieval and store the resulting records in PostgreSQL with pgvector.
+
+### Retrieval and grounded responses
+
+Before ranking chunks by vector similarity, the retrieval process applies metadata constraints:
+
+- Document status must be `PUBLISHED` or `APPROVED`.
+- The effective date must be on or before the current date.
+- Region, category, and membership-tier filters may further narrow the eligible documents.
+
+The configured similarity levels are:
+
+| Similarity | Interpretation |
+|---|---|
+| `>= 0.40` | High confidence |
+| `>= 0.25` and `< 0.40` | Medium confidence |
+| `< 0.25` | Low confidence; abstain rather than generate an unsupported answer |
+
+Answers include available source attribution, such as the document title, section, version, and retrieved chunk IDs. These thresholds are application configuration, not a guarantee that every answer will be correct.
+
+## API Reference
+
+When the backend is running, use the interactive OpenAPI documentation at [http://localhost:8000/docs](http://localhost:8000/docs) to inspect request and response schemas.
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `GET` | `/api/v1/health` | Service health and dependency status | Public |
+| `GET` | `/api/v1/products` | Paginated product search with filters and sorting | Public |
+| `GET` | `/api/v1/products/{id}` | Product details, specifications, and images | Public |
+| `GET` | `/api/v1/categories` | Product category hierarchy | Public |
+| `POST` | `/api/v1/ai/recommend` | Natural-language shopping recommendations | Customer |
+| `POST` | `/knowledge/ask` | Policy question answering using RAG | Public / Customer |
+| `POST` | `/api/v1/admin/knowledge/documents` | Ingest PDF, Markdown, and JSON documents | Admin |
+| `GET` | `/api/v1/admin/knowledge/documents` | List ingested documents and chunks | Admin |
+| `GET` | `/api/v1/orders` | Customer order history | Customer |
+| `GET` | `/api/v1/orders/{id}` | Order details and simulated shipment timeline | Customer |
+| `POST` | `/api/v1/cart` | Add a product to the cart with inventory checks | Customer |
+| `GET` | `/api/v1/admin/audit/decisions` | Review AI decision and RAG retrieval logs | Admin |
+
+The actual authorization requirements and route prefixes are defined by the running application. Consult the OpenAPI specification for the authoritative contracts.
+
+## Testing and Evaluation
+
+Run the RAG pipeline and evaluation tests from the backend directory:
+
+```bash
 python -m pytest tests/test_rag_pipeline.py tests/test_rag_evaluation.py -v
 ```
 
-### 2. RAG Evaluation Corpus Benchmark
-The repository includes an 89-case evaluation benchmark in `tests/rag_evaluation.json` that tests:
-- Grounded factual retrieval across warranty, return windows, and tier perks.
-- Safe abstention on out-of-scope / adversarial queries.
-- SQL metadata filtering by membership tier.
+The repository includes an 89-case evaluation corpus at `tests/rag_evaluation.json`. The documented benchmark covers:
 
-**Current Test Results**: **5/5 test suites passed (100%)**, verifying all **89 evaluation cases**.
+- Evidence-grounded answers about return windows, warranties, and membership benefits.
+- Abstention on out-of-scope or adversarial questions.
+- Metadata filtering by membership tier.
 
----
+The existing project notes report that five test suites passed across the 89 evaluation cases. Run the test commands in your own environment to verify the current result against your checkout and configuration.
 
-## 👥 Demo Personas
+## Demo Personas
 
-When testing with `CLERK_MOCK_AUTH=true`, switch personas by passing the `X-Mock-User-Id` header or clicking **Switch Demo Persona** in the navbar:
+With `CLERK_MOCK_AUTH=true`, development flows can use mock personas. The application documentation describes selecting a persona in the navigation bar or passing the `X-Mock-User-Id` header.
 
-| Persona | Tier | Region | Capabilities |
-|---|---|---|---|
-| **Sarah Jenkins** (`user_basic`) | Basic | US | Standard 14-day return window, standard shipping |
-| **Marcus Vance** (`user_prime`) | Prime | US | Extended 30-day return window, free 2-day delivery |
-| **Elena Rostova** (`user_vip`) | Premium VIP | EU | Extended 60-day window, complimentary accidental warranty |
-| **Alex Mercer** (`admin_user`) | Admin | Global | Full catalog management, RAG document ingestion, audit logs |
+| Persona | Mock user ID | Tier | Region | Example capabilities |
+|---|---|---|---|---|
+| Sarah Jenkins | `user_basic` | Basic | US | Standard 14-day return window and standard shipping |
+| Marcus Vance | `user_prime` | Prime | US | Extended 30-day return window and free two-day delivery |
+| Elena Rostova | `user_vip` | Premium VIP | EU | Extended 60-day return window and complimentary accidental-damage warranty |
+| Alex Mercer | `admin_user` | Admin | Global | Catalog administration, policy document ingestion, and audit access |
 
----
+These personas are intended for development and demonstration, not production identity management.
 
-## 🎨 Design Aesthetics
+## Interface and Design
 
-The frontend design replicates the clean, state-of-the-art interface of [wrapper.framer.ai](https://wrapper.framer.ai/):
-- **Typography**: Precision letter-spacing with Google's **Geist** and **Geist Mono**.
-- **Interactive macOS Window Mockup**: Live macOS application window with real SVG spline charts comparing revenue and return rates.
-- **Asymmetric Bento Grid**: Structured high-contrast feature cards with interactive Slack and RAG grounding previews.
-- **Editorial Customer Stories**: Executive portrait cards with dark gradient overlays.
-- **Dark & Light Mode**: Fluid transitions between Obsidian Dark and Clean Porcelain themes.
+The frontend uses a minimal, editorial visual language inspired by [Wrapper Framer](https://wrapper.framer.ai/). It includes:
 
----
+- Geist and Geist Mono typography.
+- A responsive, asymmetric feature-card layout.
+- Product discovery, comparison, and conversational assistant screens.
+- Knowledge and administration interfaces.
+- Dark and light themes with shared design tokens.
+- Interface mockups and visual previews for selected commerce and analytics workflows.
 
-## 📄 License
+## License
 
-This project was built for the **Hack-NullVoid** Hackathon under the [MIT License](LICENSE).
+This project was built for the Hack-NullVoid hackathon and is distributed under the [MIT License](LICENSE).
