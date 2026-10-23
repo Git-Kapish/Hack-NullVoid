@@ -65,89 +65,65 @@ export function Navbar() {
         justifyContent: 'space-between',
         gap: '1.5rem'
       }}>
-        {/* Brand Logo */}
+        {/* Brand Logo - Wrapper Framer style */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
-          <div style={{
-            width: '34px',
-            height: '34px',
-            borderRadius: '9px',
-            background: 'var(--gradient-ai)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            boxShadow: '0 0 12px var(--color-ai-glow)'
-          }}>
-            <ShoppingBag size={18} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
-              ShopSmart
-            </span>
-            <span style={{ 
-              marginLeft: '5px', 
-              fontSize: '0.7rem', 
-              fontWeight: 700, 
-              backgroundColor: 'var(--color-ai-surface-2)', 
-              color: 'var(--color-ai-text)', 
-              padding: '2px 7px', 
-              borderRadius: '999px',
-              border: '1px solid var(--color-ai-border)'
-            }}>AI</span>
-          </div>
+          <span style={{
+            display: 'inline-block',
+            width: '9px',
+            height: '9px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--color-text)',
+            transition: 'background-color 200ms ease'
+          }}></span>
+          <span style={{ fontWeight: 600, fontSize: '1.15rem', color: 'var(--color-text)', letterSpacing: '-0.025em' }}>
+            ShopSmart
+          </span>
         </Link>
 
-        {/* Primary Desktop Navigation */}
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        {/* Primary Desktop Navigation - Wrapper Framer style */}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}>
           <Link
             to="/products"
             style={{ 
-              color: isActive('/products') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              fontWeight: isActive('/products') ? 600 : 500,
+              color: isActive('/products') ? 'var(--color-text)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/products') ? 600 : 400,
               fontSize: '0.9rem'
             }}
           >
-            Shop
-          </Link>
-
-          <Link
-            to="/compare"
-            style={{ 
-              color: isActive('/compare') ? 'var(--color-primary)' : 'var(--color-text-muted)',
-              fontWeight: isActive('/compare') ? 600 : 500,
-              fontSize: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
-            }}
-          >
-            <Layers size={15} /> Compare
-            {compareCount > 0 && (
-              <span style={{
-                backgroundColor: 'var(--color-primary)',
-                color: '#fff',
-                fontSize: '0.65rem',
-                borderRadius: '999px',
-                padding: '1px 5px',
-                fontWeight: 700
-              }}>
-                {compareCount}
-              </span>
-            )}
+            Catalog
           </Link>
 
           <Link
             to="/assistant"
             style={{ 
-              color: isActive('/assistant') ? 'var(--color-ai-text)' : 'var(--color-text-muted)',
-              fontWeight: isActive('/assistant') ? 600 : 500,
-              fontSize: '0.9rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px'
+              color: isActive('/assistant') ? 'var(--color-text)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/assistant') ? 600 : 400,
+              fontSize: '0.9rem'
             }}
           >
-            <Sparkles size={15} color="var(--color-ai-text)" /> Ask AI
+            Assistant
+          </Link>
+
+          <Link
+            to="/policies"
+            style={{ 
+              color: isActive('/policies') ? 'var(--color-text)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/policies') ? 600 : 400,
+              fontSize: '0.9rem'
+            }}
+          >
+            Policies & RAG
+          </Link>
+
+          <Link
+            to="/orders"
+            style={{ 
+              color: isActive('/orders') ? 'var(--color-text)' : 'var(--color-text-muted)',
+              fontWeight: isActive('/orders') ? 600 : 400,
+              fontSize: '0.9rem'
+            }}
+          >
+            Orders
           </Link>
 
           {/* Admin Menu Dropdown */}
@@ -304,13 +280,15 @@ export function Navbar() {
             <UserButton afterSignOutUrl="/" />
           </Show>
           <Show when="signed-out">
-            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+              <Link to="/policies" className="wrapper-pill-secondary" style={{ padding: '0.45rem 1rem', fontSize: '0.825rem' }}>
+                Contact sales
+              </Link>
               <SignInButton mode="modal">
-                <button className="btn btn-outline btn-sm">Sign In</button>
+                <button className="wrapper-pill-primary" style={{ padding: '0.45rem 1.15rem', fontSize: '0.825rem' }}>
+                  Log in
+                </button>
               </SignInButton>
-              <SignUpButton mode="modal">
-                <button className="btn btn-primary btn-sm">Sign Up</button>
-              </SignUpButton>
             </div>
           </Show>
 

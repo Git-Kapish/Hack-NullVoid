@@ -9,6 +9,7 @@ import { CompareProvider } from './context/CompareContext';
 
 // Components
 import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
 import { CompareTray } from './components/commerce/CompareTray';
 
 // Pages
@@ -83,15 +84,7 @@ export function App() {
 
                 <CompareTray />
 
-                <footer style={{
-                  borderTop: '1px solid var(--color-border)',
-                  padding: '1.5rem',
-                  textAlign: 'center',
-                  color: 'var(--color-text-muted)',
-                  fontSize: '0.85rem'
-                }}>
-                  ShopSmart AI • Hackathon Modular Monolith • React 19 + FastAPI + PgVector
-                </footer>
+                <Footer />
               </div>
             </BrowserRouter>
           </CompareProvider>
