@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowUpRight, ShieldCheck, Sparkles, Terminal, Activity } from 'lucide-react';
+import { Logo } from './common/Logo';
 
 export function Footer() {
   return (
@@ -28,23 +29,7 @@ export function Footer() {
         }}>
           {/* Brand Info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '320px' }}>
-            <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
-              <span style={{
-                display: 'inline-block',
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-text)'
-              }}></span>
-              <span style={{
-                fontWeight: 600,
-                fontSize: '1.2rem',
-                color: 'var(--color-text)',
-                letterSpacing: '-0.02em'
-              }}>
-                ShopSmart
-              </span>
-            </Link>
+            <Logo size="md" />
 
             <p style={{
               fontSize: '0.9rem',

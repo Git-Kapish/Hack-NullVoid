@@ -21,6 +21,7 @@ import {
   ChevronDown,
   BookOpen
 } from 'lucide-react';
+import { Logo } from './common/Logo';
 
 export function Navbar() {
   const { user, isAuthenticated, isAdmin, logout, membershipTier } = useAuth();
@@ -65,20 +66,8 @@ export function Navbar() {
         justifyContent: 'space-between',
         gap: '1.5rem'
       }}>
-        {/* Brand Logo - Wrapper Framer style */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
-          <span style={{
-            display: 'inline-block',
-            width: '9px',
-            height: '9px',
-            borderRadius: '50%',
-            backgroundColor: 'var(--color-text)',
-            transition: 'background-color 200ms ease'
-          }}></span>
-          <span style={{ fontWeight: 600, fontSize: '1.15rem', color: 'var(--color-text)', letterSpacing: '-0.025em' }}>
-            ShopSmart
-          </span>
-        </Link>
+        {/* Brand Logo */}
+        <Logo size="md" />
 
         {/* Primary Desktop Navigation - Wrapper Framer style */}
         <nav style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}>

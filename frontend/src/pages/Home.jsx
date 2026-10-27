@@ -1,1160 +1,816 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { api } from '../api/client';
+import { ProductCard } from '../components/commerce/ProductCard';
+import { Badge } from '../components/common/Badge';
+import { Button } from '../components/common/Button';
+import { ProductCardSkeleton } from '../components/common/Skeleton';
 import { 
   Sparkles, 
   ArrowRight, 
-  Search, 
-  Lock, 
-  RotateCw, 
-  Share2, 
-  Plus, 
-  Mic, 
-  ArrowUp, 
-  ChevronDown, 
-  ChevronUp, 
+  Flame, 
+  Clock, 
+  ShieldCheck, 
+  Truck, 
+  RotateCcw, 
+  Headphones, 
+  Laptop, 
+  Watch, 
+  Keyboard, 
+  ShoppingBag, 
   ChevronLeft, 
   ChevronRight, 
-  Folder, 
-  CheckCircle2, 
-  MessageSquare, 
-  ShieldCheck, 
-  Layers, 
-  ExternalLink, 
-  FileText, 
-  Database, 
-  TrendingUp,
-  Cpu,
-  ShoppingBag,
-  Package,
-  Sliders,
-  Check
+  Percent, 
+  Star,
+  Zap
 } from 'lucide-react';
-
-import barbaraImg from '../assets/barbara_portrait.jpg';
-import leslieImg from '../assets/leslie_portrait.jpg';
+import { getProductImage, FALLBACK_PRODUCT_IMAGE } from '../utils/productUtils';
+import { useCartWishlist } from '../context/CartWishlistContext';
 
 export function Home() {
   const navigate = useNavigate();
-  const [activeFaq, setActiveFaq] = useState(0);
-  const [hoveredDay, setHoveredDay] = useState(4); // default Thursday (peak)
-  const [testimonyIndex, setTestimonyIndex] = useState(0);
-  const [agentInput, setAgentInput] = useState('');
+  const { addToCart } = useCartWishlist();
 
-  // Weekly performance chart data (matches Wrapper Framer screenshot)
-  const chartDays = [
-    { name: 'Mon', valThis: 142, valLast: 128 },
-    { name: 'Tue', valThis: 154, valLast: 135 },
-    { name: 'Wed', valThis: 168, valLast: 144 },
-    { name: 'Thu', valThis: 184, valLast: 150 }, // Peak
-    { name: 'Fri', valThis: 162, valLast: 148 },
-    { name: 'Sat', valThis: 138, valLast: 130 },
-    { name: 'Sun', valThis: 145, valLast: 132 },
-  ];
+  // State
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [recommendedCategory, setRecommendedCategory] = useState('all');
+  const [searchPrompt, setSearchPrompt] = useState('');
 
-  // FAQ Items matching wrapper.framer.ai
-  const faqList = [
+  // Live Flash Deal Countdown Timer (Hours, Minutes, Seconds)
+  const [timeLeft, setTimeLeft] = useState({ hours: 5, minutes: 42, seconds: 18 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        if (prev.hours > 0) return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        return { hours: 12, minutes: 0, seconds: 0 };
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Fetch Live Catalog Products
+  useEffect(() => {
+    async function loadProducts() {
+      setLoading(true);
+      try {
+        const res = await api.get('/products', { size: 16 });
+        const items = res?.items || res?.products || [];
+        setProducts(items);
+      } catch (err) {
+        console.error('Failed to load products for home:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  // Hero Carousel Slides
+  const heroSlides = [
     {
-      q: 'What is your AI platform?',
-      a: 'ShopSmart AI is an autonomous enterprise commerce intelligence suite. It combines deterministic catalog verification, multi-agent automated workflows, and pgvector RAG policy grounding to protect retail margins, streamline inventory, and resolve customer claims.'
+      id: 1,
+      badge: 'Smart Tech Fest • Limited Time Deals',
+      badgeVariant: 'prime',
+      title: 'M3 MacBooks & Next-Gen Ultrabooks',
+      subtitle: 'Experience groundbreaking efficiency with up to 35% off high-performance laptops. Verified catalog pricing with instant price-match assurance.',
+      tagline: 'Up to $250 Off + Free 2-Day Delivery',
+      actionText: 'Shop Laptops',
+      link: '/products?category=laptops',
+      bgGradient: 'linear-gradient(135deg, rgba(37, 99, 235, 0.12) 0%, rgba(79, 70, 229, 0.16) 50%, rgba(124, 58, 237, 0.1) 100%)',
+      accentColor: '#3B82F6',
+      featuredImg: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',
+      specs: ['Apple M3 Silicon', '18h Battery Life', 'Liquid Retina']
     },
     {
-      q: 'What can teams use the platform for?',
-      a: 'Teams use ShopSmart for real-time order inquiries, automated return authorizations, cross-channel inventory rebalancing, SLA compliance auditing, side-by-side spec comparisons, and instant grounded answers to internal and customer queries.'
+      id: 2,
+      badge: 'Acoustic Excellence • Flagship Audio',
+      badgeVariant: 'ai',
+      title: 'Sony WH-1000XM5 & Studio Headphones',
+      subtitle: 'Industry-leading noise cancellation engineered with dual AI audio processors for crystal clear acoustics and studio-grade immersion.',
+      tagline: 'Save $50 • Prime Exclusive Price',
+      actionText: 'Explore Audio',
+      link: '/products?category=audio',
+      bgGradient: 'linear-gradient(135deg, rgba(124, 58, 237, 0.14) 0%, rgba(168, 85, 247, 0.16) 50%, rgba(236, 72, 153, 0.08) 100%)',
+      accentColor: '#8B5CF6',
+      featuredImg: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
+      specs: ['Dual Processor V1', '30hr Battery', 'Adaptive ANC']
     },
     {
-      q: 'Is the AI safe for business use?',
-      a: 'Yes. Every AI decision is grounded against deterministic database facts and verified policy documents. Candidate products are queried directly from the database rather than hallucinated by language models, and all agent decisions are audited in ai_decision_logs with confidence scores.'
-    },
-    {
-      q: 'Can it connect to our existing tools?',
-      a: 'Yes. ShopSmart features over 100+ connectors including Shopify, Stripe, QuickBooks, PostgreSQL, Redis, Slack, Zendesk, SAP, and Google Analytics. Agents read live data and report directly inside your existing workflows.'
-    },
-    {
-      q: 'Can we customize the AI for our business?',
-      a: 'Absolutely. You can upload custom PDFs, Markdown, and JSON policy documents into our pgvector RAG ingestion pipeline. The system enforces your specific return windows, tier benefits (Basic, Prime, VIP), and regional warranty clauses automatically.'
-    },
-    {
-      q: 'What is the workspace used for?',
-      a: 'The workspace provides your team with a centralized console to monitor agent workflows, inspect reasoning traces, run natural language audits across catalogs, and manage team permissions.'
-    },
-    {
-      q: 'Do you offer implementation support?',
-      a: 'Yes. We provide dedicated solutions engineering, custom vector schema migration, security policy reviews, and automated CI/CD evaluation pipelines.'
-    },
-    {
-      q: 'How is this different from a chatbot?',
-      a: 'Standard chatbots merely generate probabilistic text. ShopSmart agents execute deterministic tools, pull real-time database records, audit calculations, verify policy grounding, and commit stateful transactions across your tech stack.'
+      id: 3,
+      badge: 'ShopSmart AI Shopping Concierge',
+      badgeVariant: 'ai',
+      title: 'Tell Us What You Need. We Find It.',
+      subtitle: 'Looking for a programming laptop under $1000, or silent mechanical keyboards? Our catalog-grounded AI finds authentic options in seconds.',
+      tagline: 'Grounded against live inventory & real specs',
+      actionText: 'Launch Assistant',
+      link: '/assistant',
+      bgGradient: 'linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.15) 50%, rgba(59, 130, 246, 0.08) 100%)',
+      accentColor: '#10B981',
+      featuredImg: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?w=800&q=80',
+      specs: ['Natural Language', 'Zero Hallucinations', 'Live Inventory']
     }
   ];
 
-  return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '5.5rem', paddingBottom: '4rem' }}>
-      
-      {/* 1. HERO SECTION (Wrapper Framer exact layout) */}
-      <section style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '3rem',
-        paddingTop: '2.5rem'
-      }}>
-        {/* Top Headline + Subtext Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          alignItems: 'end',
-          gap: '2.5rem',
-          maxWidth: '1240px',
-          margin: '0 auto',
-          width: '100%'
-        }}>
-          {/* Left Column: Big Headline + CTAs */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-            <h1 className="text-display" style={{ margin: 0, fontWeight: 500, letterSpacing: '-0.04em' }}>
-              Unlock your <br />
-              enterprise intelligence
-            </h1>
+  // Auto-advance Carousel every 6 seconds
+  useEffect(() => {
+    const slideTimer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
+    }, 6000);
+    return () => clearInterval(slideTimer);
+  }, [heroSlides.length]);
 
-            <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              <Link 
-                to="/products" 
-                className="wrapper-pill-primary" 
-                style={{ padding: '0.75rem 1.75rem', fontSize: '0.95rem' }}
+  // Categories with counts and icons
+  const categories = [
+    { id: 'all', name: 'All Departments', icon: ShoppingBag, link: '/products' },
+    { id: 'laptops', name: 'Laptops & Computers', icon: Laptop, link: '/products?category=laptops' },
+    { id: 'audio', name: 'Audio & Sound', icon: Headphones, link: '/products?category=audio' },
+    { id: 'wearables', name: 'Smart Wearables', icon: Watch, link: '/products?category=wearables' },
+    { id: 'accessories', name: 'Keyboards & Peripherals', icon: Keyboard, link: '/products?category=accessories' }
+  ];
+
+  // Preset Conversational Shopping Prompt Chips
+  const aiPromptChips = [
+    { label: '💻 Best laptop under $1000', query: 'suggest a laptop under $1000' },
+    { label: '🎧 Noise-cancelling headphones for flights', query: 'noise cancelling headphones for travel' },
+    { label: '⌨️ Silent mechanical keyboard for Mac', query: 'mechanical keyboard with Mac support' },
+    { label: '⌚ Outdoor fitness watch with GPS', query: 'smartwatch with GPS and heart rate' },
+    { label: '🖱️ Ergonomic mouse for long work hours', query: 'ergonomic productivity mouse' }
+  ];
+
+  const handleAskAssistant = (query) => {
+    navigate(`/assistant?prompt=${encodeURIComponent(query)}`);
+  };
+
+  // Filter recommendations
+  const filteredRecommendations = products.filter(p => {
+    if (recommendedCategory === 'all') return true;
+    return p.category === recommendedCategory;
+  }).slice(0, 8);
+
+  // Flash deals (curated 4 featured items with discount calculations)
+  const flashDeals = products.slice(0, 4).map((item, idx) => {
+    const discountPercentages = [25, 20, 18, 15];
+    const discountPct = discountPercentages[idx % discountPercentages.length];
+    const originalPrice = parseFloat((item.price * (1 + discountPct / 100)).toFixed(2));
+    const claimedPcts = [78, 64, 82, 45];
+    return {
+      ...item,
+      discountPct,
+      originalPrice,
+      claimedPct: claimedPcts[idx % claimedPcts.length]
+    };
+  });
+
+  return (
+    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', paddingBottom: '3rem' }}>
+      
+      {/* 1. Category Quick-Navigation Strip (Flipkart & Amazon style) */}
+      <section style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+        <div className="category-strip">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = recommendedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setRecommendedCategory(cat.id);
+                  if (cat.id !== 'all') {
+                    // Smooth visual category filter
+                  }
+                }}
+                className={`category-pill ${isActive ? 'active' : ''}`}
+                style={{
+                  border: isActive ? '1px solid var(--color-primary)' : '1px solid var(--color-border)'
+                }}
               >
-                Sign Up
-              </Link>
-              <Link 
-                to="/policies" 
-                className="wrapper-pill-secondary" 
-                style={{ padding: '0.75rem 1.75rem', fontSize: '0.95rem' }}
-              >
-                Book a demo
-              </Link>
+                <Icon size={16} />
+                <span>{cat.name}</span>
+              </button>
+            );
+          })}
+
+          <Link
+            to="/products"
+            className="category-pill"
+            style={{ marginLeft: 'auto', backgroundColor: 'var(--color-surface-2)', fontWeight: 600 }}
+          >
+            <span>Full Catalog (16 Items)</span>
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      </section>
+
+      {/* 2. Hero Interactive Deals Carousel (Amazon Hero Banner style) */}
+      <section className="hero-carousel-container">
+        {heroSlides.map((slide, idx) => {
+          if (idx !== currentSlide) return null;
+          return (
+            <div
+              key={slide.id}
+              className="hero-slide animate-fade-in"
+              style={{
+                background: slide.bgGradient
+              }}
+            >
+              {/* Left Column: Text & CTA */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '620px', zIndex: 2 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <Badge variant={slide.badgeVariant} size="sm">
+                    <Sparkles size={12} /> {slide.badge}
+                  </Badge>
+                  <span className="text-xs font-mono" style={{ color: 'var(--color-text-muted)' }}>
+                    • Verified In Stock
+                  </span>
+                </div>
+
+                <h1 style={{
+                  fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.15,
+                  color: 'var(--color-text)'
+                }}>
+                  {slide.title}
+                </h1>
+
+                <p style={{
+                  fontSize: '1rem',
+                  lineHeight: 1.55,
+                  color: 'var(--color-text-muted)',
+                  margin: 0
+                }}>
+                  {slide.subtitle}
+                </p>
+
+                {/* Specs Pill List */}
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.25rem 0' }}>
+                  {slide.specs.map((spec, sIdx) => (
+                    <span
+                      key={sIdx}
+                      style={{
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        padding: '0.2rem 0.6rem',
+                        borderRadius: 'var(--radius-full)',
+                        backgroundColor: 'var(--color-surface)',
+                        border: '1px solid var(--color-border)',
+                        color: 'var(--color-text)'
+                      }}
+                    >
+                      ✓ {spec}
+                    </span>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => navigate(slide.link)}
+                    icon={<ArrowRight size={16} />}
+                  >
+                    {slide.actionText}
+                  </Button>
+
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: slide.accentColor }}>
+                    {slide.tagline}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Column: Featured Image with Soft Glass Container */}
+              <div style={{
+                position: 'relative',
+                width: '100%',
+                maxWidth: '380px',
+                height: '240px',
+                borderRadius: 'var(--radius-lg)',
+                overflow: 'hidden',
+                boxShadow: 'var(--shadow-lg)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'var(--color-surface)',
+                marginTop: '1.5rem',
+                flexShrink: 0
+              }}>
+                <img
+                  src={slide.featuredImg}
+                  alt={slide.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                  }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                  backdropFilter: 'blur(6px)',
+                  color: '#fff',
+                  padding: '4px 10px',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <Zap size={12} color="#FBBF24" /> Special Deal
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Carousel Slide Indicators */}
+        <div className="hero-carousel-dots">
+          {heroSlides.map((_, dotIdx) => (
+            <button
+              key={dotIdx}
+              onClick={() => setCurrentSlide(dotIdx)}
+              className={`carousel-dot ${dotIdx === currentSlide ? 'active' : ''}`}
+              aria-label={`Go to slide ${dotIdx + 1}`}
+            />
+          ))}
+        </div>
+
+        {/* Prev / Next Slide Controls */}
+        <button
+          onClick={() => setCurrentSlide((currentSlide - 1 + heroSlides.length) % heroSlides.length)}
+          style={{
+            position: 'absolute',
+            left: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-sm)',
+            zIndex: 5
+          }}
+          aria-label="Previous slide"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        <button
+          onClick={() => setCurrentSlide((currentSlide + 1) % heroSlides.length)}
+          style={{
+            position: 'absolute',
+            right: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-sm)',
+            zIndex: 5
+          }}
+          aria-label="Next slide"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </section>
+
+      {/* 3. "Today's Flash Deals" (Amazon / Flipkart Lightning Deals) */}
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          borderBottom: '1px solid var(--color-border)',
+          paddingBottom: '0.85rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: '#FEF2F2',
+              color: '#EF4444',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <Flame size={20} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+                Today's Flash Deals
+              </h2>
+              <span className="text-xs text-muted">Limited quantity lightning offers updated hourly</span>
             </div>
           </div>
 
-          {/* Right Column: Explanatory Subtext */}
-          <div style={{ maxWidth: '440px', justifySelf: 'end' }}>
-            <p style={{
-              fontSize: '1.05rem',
-              lineHeight: 1.6,
-              color: 'var(--color-text-muted)',
-              margin: 0
-            }}>
-              Empowering leading commerce teams with agents that protect margins, audit catalog drift, and enforce grounded policies automatically.
-            </p>
+          {/* Countdown Clock */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="text-xs text-muted" style={{ fontWeight: 600 }}>ENDS IN:</span>
+            <div className="deal-timer-box">
+              <Clock size={13} color="#EF4444" />
+              <span>
+                {String(timeLeft.hours).padStart(2, '0')}:
+                {String(timeLeft.minutes).padStart(2, '0')}:
+                {String(timeLeft.seconds).padStart(2, '0')}
+              </span>
+            </div>
+            <Link
+              to="/products"
+              style={{
+                marginLeft: '0.5rem',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                color: 'var(--color-primary)'
+              }}
+            >
+              See All Deals →
+            </Link>
           </div>
         </div>
 
-        {/* 2. MASSIVE INTERACTIVE APP WINDOW MOCKUP */}
+        {/* 4 Flash Deal Cards Grid */}
         <div style={{
-          maxWidth: '1180px',
-          width: '100%',
-          margin: '0 auto',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '24px',
-          boxShadow: 'var(--shadow-window)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column'
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+          gap: '1.25rem'
         }}>
-          {/* Window Chrome / Titlebar */}
+          {loading ? (
+            [...Array(4)].map((_, i) => <ProductCardSkeleton key={i} />)
+          ) : (
+            flashDeals.map((deal) => (
+            <div
+              key={deal.id}
+              className="card"
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.85rem',
+                padding: '1rem',
+                borderRadius: 'var(--radius-md)'
+              }}
+            >
+              {/* Image & Discount Badge */}
+              <div style={{
+                position: 'relative',
+                width: '100%',
+                paddingTop: '70%',
+                borderRadius: 'var(--radius-sm)',
+                overflow: 'hidden',
+                backgroundColor: 'var(--color-surface-2)'
+              }}>
+                <img
+                  src={getProductImage(deal)}
+                  alt={deal.name}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = FALLBACK_PRODUCT_IMAGE;
+                  }}
+                />
+                <div style={{ position: 'absolute', top: '8px', left: '8px' }}>
+                  <span className="deal-discount-badge">
+                    <Percent size={11} /> {deal.discountPct}% OFF
+                  </span>
+                </div>
+              </div>
+
+              {/* Product Info */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span className="text-xs text-muted" style={{ textTransform: 'uppercase' }}>
+                  {deal.brand}
+                </span>
+                <Link
+                  to={`/products/${deal.id}`}
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '0.925rem',
+                    lineHeight: 1.35,
+                    color: 'var(--color-text)',
+                    height: '2.6em',
+                    overflow: 'hidden',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
+                  {deal.name}
+                </Link>
+
+                {/* Rating */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', margin: '2px 0' }}>
+                  <Star size={13} fill="#FBBF24" color="#FBBF24" />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{deal.rating || 4.8}</span>
+                  <span className="text-xs text-muted">({deal.reviewCount || 340})</span>
+                </div>
+
+                {/* Price Block */}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
+                  <span className="font-tabular" style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--color-text)' }}>
+                    ${deal.price.toFixed(2)}
+                  </span>
+                  <span className="font-tabular text-xs" style={{ textDecoration: 'line-through', color: 'var(--color-text-subtle)' }}>
+                    ${deal.originalPrice.toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Claim Meter */}
+                <div style={{ marginTop: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--color-text-muted)', marginBottom: '3px' }}>
+                    <span>Claimed: {deal.claimedPct}%</span>
+                    <span>Only few left</span>
+                  </div>
+                  <div className="stock-meter-track">
+                    <div className="stock-meter-fill" style={{ width: `${deal.claimedPct}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Add to Cart CTA */}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => addToCart(deal)}
+                style={{ width: '100%', marginTop: 'auto' }}
+              >
+                Add to Cart
+              </Button>
+            </div>
+          )))}
+        </div>
+      </section>
+
+      {/* 4. Interactive "Ask ShopSmart AI" Shopping Concierge Spotlight */}
+      <section className="ai-spotlight-card">
+        <div style={{ maxWidth: '820px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'center' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+            <span style={{
+              display: 'inline-flex',
+              padding: '0.2rem 0.65rem',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'rgba(124, 58, 237, 0.14)',
+              color: '#7C3AED',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              letterSpacing: '0.04em'
+            }}>
+              ✨ SHOPSMART AI COPILOT
+            </span>
+          </div>
+
+          <h2 style={{
+            fontSize: 'clamp(1.5rem, 3vw, 2.2rem)',
+            fontWeight: 700,
+            letterSpacing: '-0.025em',
+            margin: 0
+          }}>
+            Smart Shopping Assistance, Grounded in Real Hardware
+          </h2>
+
+          <p style={{
+            fontSize: '0.95rem',
+            color: 'var(--color-text-muted)',
+            lineHeight: 1.55,
+            margin: 0
+          }}>
+            Ask naturally in plain English. Our multi-agent system filters verified catalog items, checks warranty policies, and validates price constraints without hallucinations.
+          </p>
+
+          {/* Prompt Input Box */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (searchPrompt.trim()) handleAskAssistant(searchPrompt.trim());
+            }}
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              width: '100%',
+              maxWidth: '640px',
+              margin: '0.5rem auto 0',
+              backgroundColor: 'var(--color-surface)',
+              padding: '0.35rem 0.5rem',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--color-border-strong)',
+              boxShadow: 'var(--shadow-sm)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', paddingLeft: '0.75rem', color: 'var(--color-ai-text)' }}>
+              <Sparkles size={18} />
+            </div>
+            <input
+              type="text"
+              placeholder="e.g. Suggest a MacBook for coding under $1300..."
+              value={searchPrompt}
+              onChange={(e) => setSearchPrompt(e.target.value)}
+              style={{
+                flex: 1,
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                color: 'var(--color-text)',
+                fontSize: '0.9rem',
+                fontFamily: 'inherit'
+              }}
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+            >
+              Ask AI
+            </Button>
+          </form>
+
+          {/* Clickable Preset Intent Chips */}
           <div style={{
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.85rem 1.25rem',
-            borderBottom: '1px solid var(--color-border)',
-            backgroundColor: 'var(--color-surface-2)',
-            fontSize: '0.8rem',
-            color: 'var(--color-text-muted)'
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            marginTop: '0.5rem'
           }}>
-            {/* macOS Window Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px', width: '80px' }}>
-              <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: '#FF5F56', display: 'inline-block' }}></span>
-              <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: '#FFBD2E', display: 'inline-block' }}></span>
-              <span style={{ width: '11px', height: '11px', borderRadius: '50%', backgroundColor: '#27C93F', display: 'inline-block' }}></span>
-            </div>
+            {aiPromptChips.map((chip, idx) => (
+              <button
+                key={idx}
+                type="button"
+                className="ai-chip-prompt"
+                onClick={() => handleAskAssistant(chip.query)}
+              >
+                <span>{chip.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* URL / Location Bar */}
+      {/* 5. "Recommended For You" (AI-Curated Catalog Products) */}
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          borderBottom: '1px solid var(--color-border)',
+          paddingBottom: '0.85rem'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 700, margin: 0, letterSpacing: '-0.02em' }}>
+                Recommended For You
+              </h2>
+              <Badge variant="ai" size="sm">
+                <Sparkles size={11} /> AI Grounded
+              </Badge>
+            </div>
+            <span className="text-xs text-muted">
+              Personalized based on active inventory, hardware specifications, and customer ratings
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {['all', 'laptops', 'audio', 'accessories'].map(catId => (
+              <button
+                key={catId}
+                onClick={() => setRecommendedCategory(catId)}
+                style={{
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: 'var(--radius-full)',
+                  border: recommendedCategory === catId ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                  backgroundColor: recommendedCategory === catId ? 'var(--color-primary)' : 'var(--color-surface)',
+                  color: recommendedCategory === catId ? 'var(--color-on-primary)' : 'var(--color-text)',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  textTransform: 'capitalize'
+                }}
+              >
+                {catId === 'all' ? 'All Picks' : catId}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Product Cards Grid */}
+        <div className="grid-catalog">
+          {loading ? (
+            [...Array(8)].map((_, i) => <ProductCardSkeleton key={i} />)
+          ) : (
+            filteredRecommendations.map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => navigate('/products')}
+            icon={<ArrowRight size={16} />}
+          >
+            Explore All 16 Hardware Products in Catalog
+          </Button>
+        </div>
+      </section>
+
+      {/* 6. Customer Trust & Confidence Proposition Bar (Amazon / Flipkart standard) */}
+      <section style={{ marginTop: '1rem' }}>
+        <div className="trust-grid">
+          <div className="trust-item">
             <div style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--color-surface-2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '9999px',
-              padding: '3px 18px',
-              fontSize: '0.75rem',
-              color: 'var(--color-text-muted)',
-              maxWidth: '320px',
-              width: '100%'
+              flexShrink: 0
             }}>
-              <Lock size={11} />
-              <span style={{ fontFamily: 'var(--font-mono)' }}>shopsmart.ai/workspace</span>
-              <RotateCw size={11} style={{ marginLeft: '4px', cursor: 'pointer' }} />
+              <Truck size={22} color="#3B82F6" />
             </div>
-
-            {/* Right Action Buttons */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '80px', justifyContent: 'flex-end' }}>
-              <Share2 size={13} style={{ cursor: 'pointer' }} />
-              <Plus size={14} style={{ cursor: 'pointer' }} />
-              <div style={{
-                width: '18px',
-                height: '18px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-text)',
-                color: 'var(--color-bg)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.65rem',
-                fontWeight: 600
-              }}>W</div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Fast 2-Day Delivery</div>
+              <div className="text-xs text-muted">Free automated dispatch on Prime tier orders</div>
             </div>
           </div>
 
-          {/* Window Body: Sidebar + Main Content */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '240px 1fr',
-            minHeight: '520px',
-            backgroundColor: 'var(--color-bg)'
-          }}>
-            {/* Sidebar */}
+          <div className="trust-item">
             <div style={{
-              borderRight: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface)',
-              padding: '1.25rem 0.85rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '1.5rem',
-              fontSize: '0.85rem'
-            }}>
-              {/* Workspace Switcher */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '6px 10px',
-                borderRadius: '8px',
-                border: '1px solid var(--color-border)',
-                backgroundColor: 'var(--color-surface-2)',
-                fontWeight: 500
-              }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#3B82F6' }}></span>
-                  Wayne Corp
-                </span>
-                <ChevronDown size={14} color="var(--color-text-muted)" />
-              </div>
-
-              {/* Main Navigation */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  backgroundColor: 'var(--color-surface-2)',
-                  fontWeight: 500,
-                  cursor: 'pointer'
-                }}>
-                  <Plus size={14} /> New Agent Chat
-                </div>
-                <Link to="/policies" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  color: 'var(--color-text-muted)',
-                  cursor: 'pointer'
-                }}>
-                  <FileText size={14} /> Library (RAG)
-                </Link>
-                <Link to="/assistant" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '6px 10px',
-                  borderRadius: '6px',
-                  color: 'var(--color-text-muted)',
-                  cursor: 'pointer'
-                }}>
-                  <Cpu size={14} /> Plugins & Tools
-                </Link>
-              </div>
-
-              {/* Projects */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-text-subtle)', paddingLeft: '8px' }}>
-                  Projects
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', color: 'var(--color-text-muted)', fontSize: '0.825rem' }}>
-                  <Folder size={13} /> Ace Chemicals
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', color: 'var(--color-text-muted)', fontSize: '0.825rem' }}>
-                  <Folder size={13} /> Janus Cosmetics
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 8px', color: 'var(--color-text-muted)', fontSize: '0.825rem' }}>
-                  <Folder size={13} /> Stagg Enterprises
-                </div>
-              </div>
-
-              {/* Recent Chats */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-text-subtle)', paddingLeft: '8px' }}>
-                  Chats
-                </div>
-                <div style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--color-text)', fontWeight: 500 }}>
-                  Analyze the financial...
-                </div>
-                <div style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Follow Andres The...
-                </div>
-                <div style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Auto email response
-                </div>
-                <div style={{ padding: '4px 8px', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Catalog audit sync
-                </div>
-              </div>
-            </div>
-
-            {/* Main Chat Viewport */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              padding: '1.75rem',
-              gap: '1.5rem',
-              backgroundColor: 'var(--color-bg)'
-            }}>
-              {/* Message Thread */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {/* User Message Bubble */}
-                <div style={{ alignSelf: 'flex-end', maxWidth: '380px' }}>
-                  <div style={{
-                    backgroundColor: 'var(--color-surface-2)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '16px 16px 4px 16px',
-                    padding: '0.75rem 1.15rem',
-                    fontSize: '0.9rem',
-                    color: 'var(--color-text)'
-                  }}>
-                    How did we close out the week?
-                  </div>
-                </div>
-
-                {/* Agent Thought Container (Wrapper Framer style) */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', maxWidth: '640px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#6366F1' }}></span>
-                    Thought for 1s
-                  </div>
-
-                  {/* Thought Steps Box */}
-                  <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '10px',
-                    padding: '0.65rem 0.85rem',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '6px',
-                    fontSize: '0.8rem'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '16px', height: '16px', borderRadius: '3px', backgroundColor: '#635BFF', color: '#fff', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>S</span>
-                      <span>Pulled 412 payments from Stripe</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '16px', height: '16px', borderRadius: '3px', backgroundColor: '#2CA01C', color: '#fff', fontSize: '0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>qb</span>
-                      <span>Read 38 expenses in QuickBooks</span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '16px', height: '16px', borderRadius: '3px', backgroundColor: '#E37400', color: '#fff', fontSize: '0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>G</span>
-                      <span>Checked 9,820 sessions in Google Analytics</span>
-                    </div>
-                  </div>
-
-                  {/* Agent Response Text */}
-                  <div style={{ fontSize: '0.925rem', lineHeight: 1.5, color: 'var(--color-text)' }}>
-                    Revenue closed at <strong>$184K</strong>, up 23% on last week. CAC is down to $38.
-                  </div>
-
-                  {/* Interactive Revenue Line Chart Card (Matches Wrapper Framer screenshot) */}
-                  <div style={{
-                    backgroundColor: 'var(--color-surface)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '16px',
-                    padding: '1.25rem 1.5rem',
-                    maxWidth: '460px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.85rem'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Revenue this week</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                          <span style={{ fontSize: '1.45rem', fontWeight: 600 }}>$184K</span>
-                          <span style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            color: '#10B981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            padding: '2px 6px',
-                            borderRadius: '4px'
-                          }}>
-                            ▲ 23%
-                          </span>
-                        </div>
-                      </div>
-
-                      <div style={{ display: 'flex', gap: '12px', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '10px', height: '2px', backgroundColor: '#3B82F6', display: 'inline-block' }}></span> This week
-                        </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ width: '10px', height: '2px', borderTop: '2px dashed #9CA3AF', display: 'inline-block' }}></span> Last week
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* SVG Spline Chart with Area Gradient */}
-                    <div style={{ position: 'relative', width: '100%', height: '100px' }}>
-                      <svg viewBox="0 0 400 100" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                        <defs>
-                          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
-
-                        {/* Subtle Horizontal Gridlines */}
-                        <line x1="0" y1="20" x2="400" y2="20" stroke="var(--color-border)" strokeDasharray="3 3" />
-                        <line x1="0" y1="60" x2="400" y2="60" stroke="var(--color-border)" strokeDasharray="3 3" />
-
-                        {/* Last Week Dashed Line */}
-                        <path
-                          d="M 20,80 Q 80,68 140,55 T 260,35 T 380,60"
-                          fill="none"
-                          stroke="var(--color-text-subtle)"
-                          strokeWidth="2"
-                          strokeDasharray="4 4"
-                          opacity="0.6"
-                        />
-
-                        {/* This Week Area Fill */}
-                        <path
-                          d="M 20,70 C 80,65 140,40 200,20 C 260,10 320,80 380,70 L 380,95 L 20,95 Z"
-                          fill="url(#chartGradient)"
-                        />
-
-                        {/* This Week Solid Blue Curve */}
-                        <path
-                          d="M 20,70 C 80,65 140,40 200,20 C 260,10 320,80 380,70"
-                          fill="none"
-                          stroke="#3B82F6"
-                          strokeWidth="2.5"
-                        />
-
-                        {/* Highlight Point for Peak */}
-                        <circle cx="200" cy="20" r="4.5" fill="#3B82F6" stroke="var(--color-bg)" strokeWidth="2" />
-                      </svg>
-                    </div>
-
-                    {/* Day Labels */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>
-                      {chartDays.map((d, i) => (
-                        <span 
-                          key={d.name}
-                          onClick={() => setHoveredDay(i)}
-                          style={{
-                            cursor: 'pointer',
-                            fontWeight: hoveredDay === i ? 600 : 400,
-                            color: hoveredDay === i ? 'var(--color-text)' : 'inherit'
-                          }}
-                        >
-                          {d.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Agent Input Bar */}
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.65rem 1rem',
-                backgroundColor: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: '9999px',
-                gap: '0.75rem',
-                boxShadow: 'var(--shadow-sm)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                  <Plus size={16} color="var(--color-text-muted)" style={{ cursor: 'pointer' }} />
-                  <input
-                    type="text"
-                    value={agentInput}
-                    onChange={(e) => setAgentInput(e.target.value)}
-                    placeholder="Ask ShopSmart anything..."
-                    style={{
-                      border: 'none',
-                      background: 'none',
-                      outline: 'none',
-                      color: 'var(--color-text)',
-                      fontSize: '0.9rem',
-                      width: '100%',
-                      fontFamily: 'inherit'
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') navigate('/assistant');
-                    }}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{
-                    fontSize: '0.75rem',
-                    color: 'var(--color-text-muted)',
-                    backgroundColor: 'var(--color-surface-2)',
-                    padding: '3px 8px',
-                    borderRadius: '9999px',
-                    border: '1px solid var(--color-border)'
-                  }}>
-                    Opus 5.5 ▾
-                  </span>
-                  <Mic size={15} color="var(--color-text-muted)" style={{ cursor: 'pointer' }} />
-                  <button
-                    onClick={() => navigate('/assistant')}
-                    style={{
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      backgroundColor: 'var(--color-primary)',
-                      color: 'var(--color-on-primary)',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <ArrowUp size={14} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. LOGO MARQUEE: "Trusted by leading enterprises everywhere" */}
-      <section style={{
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '2.5rem',
-        maxWidth: '1100px',
-        margin: '0 auto',
-        width: '100%',
-        padding: '1rem 0'
-      }}>
-        <div style={{
-          fontSize: '0.95rem',
-          fontWeight: 400,
-          color: 'var(--color-text-muted)',
-          letterSpacing: '-0.01em'
-        }}>
-          Trusted by leading enterprises everywhere
-        </div>
-
-        {/* Minimalist Monochrome Logo Grid */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '3rem 4rem',
-          opacity: 0.75
-        }}>
-          {/* Logo 1: Wayne Corp */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em' }}>
-            <span style={{ fontSize: '1.2rem' }}>❖</span> WAYNE CORP
-          </div>
-
-          {/* Logo 2: Janus Global */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em' }}>
-            <span style={{ fontSize: '1.1rem' }}>✦</span> JANUS GLOBAL
-          </div>
-
-          {/* Logo 3: Stagg Enterprises */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em' }}>
-            <span style={{ fontSize: '1.1rem' }}>▲</span> STAGG ENTERPRISES
-          </div>
-
-          {/* Logo 4: LexCorp */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em' }}>
-            <span style={{ fontSize: '1.1rem' }}>◆</span> LEXCORP
-          </div>
-
-          {/* Logo 5: Cyberdyne */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em' }}>
-            <span style={{ fontSize: '1.1rem' }}>◈</span> CYBERDYNE
-          </div>
-
-          {/* Logo 6: Omni Consumer */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.04em' }}>
-            <span style={{ fontSize: '1.1rem' }}>◉</span> OMNI CONSUMER
-          </div>
-        </div>
-      </section>
-
-      {/* 4. ASYMMETRIC BENTO GRID (Wrapper Framer exact layout) */}
-      <section style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2.5rem',
-        maxWidth: '1240px',
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        {/* BENTO CARD 1: Wherever the work happens (Split 40/60) */}
-        <div className="wrapper-card" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          alignItems: 'center',
-          gap: '3rem',
-          padding: '3rem'
-        }}>
-          {/* Left Text */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '420px' }}>
-            <h2 className="text-h1" style={{ margin: 0, fontWeight: 500 }}>
-              Wherever the work happens
-            </h2>
-            <p style={{ fontSize: '1.05rem', color: 'var(--color-text-muted)', lineHeight: 1.6, margin: 0 }}>
-              ShopSmart picks up requests in Slack, answers in chat, and reports back in the tools you already use.
-            </p>
-            <div style={{ marginTop: '0.5rem' }}>
-              <button 
-                onClick={() => navigate('/assistant')}
-                className="wrapper-pill-primary"
-                style={{ padding: '0.75rem 1.6rem' }}
-              >
-                <MessageSquare size={16} /> Add to Slack
-              </button>
-            </div>
-          </div>
-
-          {/* Right Slack Card Preview (Identical to Wrapper screenshot) */}
-          <div style={{
-            backgroundColor: 'var(--color-bg)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            padding: '1.75rem',
-            boxShadow: 'var(--shadow-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem'
-          }}>
-            {/* User Message in Slack */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: '#3B82F6', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
-                LF
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>lucius</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)' }}>4:52 PM</span>
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--color-text)' }}>
-                  how did we close out the week?
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--color-text)' }}>
-                  <span style={{ color: '#2563EB', backgroundColor: 'rgba(37,99,235,0.1)', padding: '1px 5px', borderRadius: '4px' }}>@shopsmart</span> can you pull the numbers?
-                </div>
-              </div>
-            </div>
-
-            {/* Bot Message in Slack */}
-            <div style={{ display: 'flex', gap: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '6px', backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem' }}>
-                ●
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>ShopSmart</span>
-                  <span style={{ fontSize: '0.65rem', backgroundColor: 'var(--color-surface-2)', padding: '1px 5px', borderRadius: '4px', color: 'var(--color-text-muted)' }}>APP</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)' }}>4:53 PM</span>
-                </div>
-                <div style={{ fontSize: '0.9rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-                  Revenue closed at <strong>$184K</strong>, up 23% on last week. CAC is down to $38.
-                </div>
-
-                {/* Used Tools Badge */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                  <span style={{ width: '14px', height: '14px', borderRadius: '3px', backgroundColor: '#635BFF', color: '#fff', fontSize: '0.55rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>S</span>
-                  <span style={{ width: '14px', height: '14px', borderRadius: '3px', backgroundColor: '#2CA01C', color: '#fff', fontSize: '0.55rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>qb</span>
-                  <span style={{ width: '14px', height: '14px', borderRadius: '3px', backgroundColor: '#E37400', color: '#fff', fontSize: '0.55rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>G</span>
-                  <span>Used Stripe, QuickBooks, and Google Analytics</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* BENTO CARD 2: Answers that show their work (Split 60/40 inverted) */}
-        <div className="wrapper-card" style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          alignItems: 'center',
-          gap: '3rem',
-          padding: '3rem'
-        }}>
-          {/* Left RAG Grounding Verification Card */}
-          <div style={{
-            backgroundColor: 'var(--color-bg)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '20px',
-            padding: '1.75rem',
-            boxShadow: 'var(--shadow-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-text-subtle)' }}>
-                RAG Grounding Trace
-              </span>
-              <span style={{
-                fontSize: '0.72rem',
-                fontWeight: 600,
-                color: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                padding: '2px 8px',
-                borderRadius: '9999px'
-              }}>
-                SIMILARITY: 0.92 · HIGH
-              </span>
-            </div>
-
-            <div style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '10px',
-              padding: '0.85rem 1rem',
-              fontSize: '0.85rem',
-              color: 'var(--color-text)'
-            }}>
-              <strong>Q:</strong> "Can a Prime customer return an open-box laptop after 25 days?"
-            </div>
-
-            {/* Retrieved Citation */}
-            <div style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: 'var(--radius-sm)',
               backgroundColor: 'var(--color-surface-2)',
-              borderLeft: '3px solid #3B82F6',
-              padding: '0.75rem 1rem',
-              borderRadius: '4px',
-              fontSize: '0.825rem',
-              color: 'var(--color-text-muted)',
-              lineHeight: 1.5
-            }}>
-              <div style={{ fontWeight: 600, color: 'var(--color-text)', marginBottom: '3px', fontSize: '0.8rem' }}>
-                📄 Return_Policy_v2.md §3.1 (Electronics)
-              </div>
-              "Prime members receive an extended 30-day return window for opened electronics with zero restocking fees..."
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: '4px' }}>
-                Doc: Return_Policy_v2.md
-              </span>
-              <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: '4px' }}>
-                Section: §3.1
-              </span>
-              <span style={{ fontSize: '0.75rem', backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)', padding: '2px 8px', borderRadius: '4px' }}>
-                Tier: Prime
-              </span>
-            </div>
-          </div>
-
-          {/* Right Text */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '420px' }}>
-            <h2 className="text-h1" style={{ margin: 0, fontWeight: 500 }}>
-              Answers that show their work
-            </h2>
-            <p style={{ fontSize: '1.05rem', color: 'var(--color-text-muted)', lineHeight: 1.6, margin: 0 }}>
-              Ask in Slack or ShopSmart and our agents pull live records from Stripe, QuickBooks, and verified RAG policy documents, then chart the answer right in the thread.
-            </p>
-            <div style={{ marginTop: '0.5rem' }}>
-              <Link 
-                to="/policies" 
-                className="wrapper-pill-primary"
-                style={{ padding: '0.75rem 1.6rem' }}
-              >
-                Explore integrations
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* BOTTOM BENTO ROW: 2 Columns (100+ plugins & Agents that act for you) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: '2.5rem'
-        }}>
-          {/* Card 3: Over 100+ plugins */}
-          <div className="wrapper-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '380px' }}>
-            {/* Plugins Icon Constellation */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(5, 1fr)',
-              gap: '12px',
-              padding: '1.5rem',
-              backgroundColor: 'var(--color-bg)',
-              borderRadius: '16px',
-              border: '1px solid var(--color-border)',
-              marginBottom: '2rem'
-            }}>
-              {['Shopify', 'Stripe', 'QuickBooks', 'Postgres', 'Redis', 'Slack', 'Zendesk', 'SAP', 'GitHub', 'Gemini'].map((name, i) => (
-                <div key={name} style={{
-                  height: '48px',
-                  borderRadius: '10px',
-                  backgroundColor: 'var(--color-surface)',
-                  border: '1px solid var(--color-border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: 'var(--color-text-muted)'
-                }}>
-                  {name.slice(0, 3)}
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <h3 className="text-h2" style={{ margin: '0 0 0.5rem' }}>
-                Over 100+ plugins
-              </h3>
-              <p style={{ fontSize: '0.95rem', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>
-                Integrate with your team's favorite commerce tools and create workflows that were simply impossible before this.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 4: Agents that act for you */}
-          <div className="wrapper-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '380px' }}>
-            {/* Interactive Simulation Input Pill (Matches Wrapper screenshot) */}
-            <div style={{
-              backgroundColor: 'var(--color-bg)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '16px',
-              padding: '1.25rem',
-              boxShadow: 'var(--shadow-sm)',
-              marginBottom: '2rem',
               display: 'flex',
-              flexDirection: 'column',
-              gap: '1rem'
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
             }}>
-              <div style={{ fontSize: '0.9rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-                Generate infinite cashflow and deposit to <strong>🏦 Checking ...1923</strong> and then reinvest 50% back into <strong>⚡ Tesla</strong> (make no mistakes)
-              </div>
-
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderTop: '1px solid var(--color-border)',
-                paddingTop: '0.75rem',
-                fontSize: '0.75rem',
-                color: 'var(--color-text-muted)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Plus size={13} />
-                  <span style={{ border: '1px solid var(--color-border)', padding: '2px 6px', borderRadius: '4px' }}>
-                    🛡 Full Access
-                  </span>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Opus 5.5 ▾</span>
-                  <Mic size={13} />
-                  <span style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ArrowUp size={11} />
-                  </span>
-                </div>
-              </div>
+              <RotateCcw size={22} color="#10B981" />
             </div>
-
             <div>
-              <h3 className="text-h2" style={{ margin: '0 0 0.5rem' }}>
-                Agents that act for you
-              </h3>
-              <p style={{ fontSize: '0.95rem', color: 'var(--color-text-muted)', lineHeight: 1.5, margin: 0 }}>
-                Describe what you need and an agent carries it out across your connected accounts, tools, and data.
-              </p>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>30-to-60 Day Returns</div>
+              <div className="text-xs text-muted">Doorstep pickup with verified RAG claim checks</div>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* 5. CUSTOMER STORIES / TESTIMONIALS (Wrapper Framer exact layout with portraits) */}
-      <section style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2.5rem',
-        maxWidth: '1240px',
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        {/* Section Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-              Customer stories
-            </div>
-            <h2 className="text-display" style={{ margin: 0, fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 500 }}>
-              Hear from the teams <br />
-              already running on ShopSmart.
-            </h2>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              onClick={() => setTestimonyIndex(t => Math.max(0, t - 1))}
-              className="btn-outline" 
-              style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%' }}
-              aria-label="Previous story"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button 
-              onClick={() => setTestimonyIndex(t => t + 1)}
-              className="btn-outline" 
-              style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%' }}
-              aria-label="Next story"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* 4-Card Bento Testimonials Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.5rem',
-          alignItems: 'stretch'
-        }}>
-          {/* Card 1: Barbara Gordon (Photo Background) */}
-          <div style={{
-            position: 'relative',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            minHeight: '380px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            padding: '2rem',
-            backgroundImage: `url(${barbaraImg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}>
-            {/* Gradient Overlay */}
+          <div className="trust-item">
             <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)'
-            }}></div>
-
-            <div style={{ position: 'relative', zIndex: 1, color: '#fff' }}>
-              <p style={{ fontSize: '1.15rem', fontWeight: 500, lineHeight: 1.4, margin: '0 0 1.25rem' }}>
-                “Every precinct asks ShopSmart in plain English now, and nobody argues about the numbers.”
-              </p>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Barbara Gordon</div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Head of Data, GCPD</div>
+              width: '44px',
+              height: '44px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--color-surface-2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <ShieldCheck size={22} color="#8B5CF6" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>100% Authentic Specs</div>
+              <div className="text-xs text-muted">Direct manufacturer serials and verified warranties</div>
             </div>
           </div>
 
-          {/* Card 2: James Gordon (Clean Quote Card) */}
-          <div className="wrapper-card" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '2rem'
-          }}>
-            <p style={{ fontSize: '1.1rem', fontWeight: 500, lineHeight: 1.5, margin: 0 }}>
-              “Alerts land before the trouble does, with the likely cause already explained. My team acts instead of digging.”
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2rem' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#1E293B', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.9rem' }}>
-                JG
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>James Gordon</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Commissioner, GCPD</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Vicki Vale (Clean Quote Card) */}
-          <div className="wrapper-card" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '2rem'
-          }}>
-            <p style={{ fontSize: '1.1rem', fontWeight: 500, lineHeight: 1.5, margin: 0 }}>
-              “ShopSmart traced Janus Cosmetics to fourteen shell entities in an afternoon. That used to take my desk three weeks.”
-            </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2rem' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#6366F1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.9rem' }}>
-                VV
-              </div>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Vicki Vale</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Editor, Gotham Gazette</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Leslie Thompkins (Photo Background) */}
-          <div style={{
-            position: 'relative',
-            borderRadius: '24px',
-            overflow: 'hidden',
-            minHeight: '380px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'flex-end',
-            padding: '2rem',
-            backgroundImage: `url(${leslieImg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}>
-            {/* Gradient Overlay */}
+          <div className="trust-item">
             <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)'
-            }}></div>
-
-            <div style={{ position: 'relative', zIndex: 1, color: '#fff' }}>
-              <p style={{ fontSize: '1.15rem', fontWeight: 500, lineHeight: 1.4, margin: '0 0 1.25rem' }}>
-                “We started with one data source. Now every department runs on the same agents.”
-              </p>
-              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Leslie Thompkins</div>
-              <div style={{ fontSize: '0.8rem', opacity: 0.8 }}>Director, Thompkins Clinic</div>
+              width: '44px',
+              height: '44px',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--color-surface-2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <Sparkles size={22} color="#F59E0B" />
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. FREQUENTLY ASKED QUESTIONS (FAQ ACCORDION) */}
-      <section style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-        gap: '3rem',
-        maxWidth: '1240px',
-        margin: '0 auto',
-        width: '100%',
-        paddingTop: '2rem'
-      }}>
-        {/* Left Sticky Title */}
-        <div>
-          <h2 className="text-display" style={{ margin: 0, fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 500 }}>
-            Frequently <br />
-            asked questions
-          </h2>
-        </div>
-
-        {/* Right Accordion List */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {faqList.map((item, index) => {
-            const isOpen = activeFaq === index;
-            return (
-              <div 
-                key={item.q}
-                style={{
-                  borderBottom: '1px solid var(--color-border)',
-                  padding: '1.5rem 0',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setActiveFaq(isOpen ? -1 : index)}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 500, color: 'var(--color-text)' }}>
-                    {item.q}
-                  </span>
-                  <ChevronDown 
-                    size={18} 
-                    color="var(--color-text-muted)"
-                    style={{
-                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition: 'transform 200ms ease',
-                      flexShrink: 0
-                    }}
-                  />
-                </div>
-
-                {isOpen && (
-                  <div className="animate-fade-in" style={{
-                    marginTop: '1rem',
-                    fontSize: '0.95rem',
-                    lineHeight: 1.6,
-                    color: 'var(--color-text-muted)'
-                  }}>
-                    {item.a}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* 7. CALL TO ACTION BANNER */}
-      <section style={{
-        maxWidth: '1240px',
-        margin: '0 auto',
-        width: '100%'
-      }}>
-        <div className="wrapper-card" style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          gap: '1.5rem',
-          padding: '4rem 2rem',
-          backgroundColor: 'var(--color-surface)'
-        }}>
-          <h2 className="text-display" style={{ margin: 0, fontWeight: 500 }}>
-            Ready to deploy enterprise commerce agents?
-          </h2>
-          <p style={{ maxWidth: '580px', fontSize: '1.1rem', color: 'var(--color-text-muted)', lineHeight: 1.6, margin: 0 }}>
-            Get started with grounded RAG policies, deterministic catalog search, and multi-agent workflows in minutes.
-          </p>
-
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Link to="/products" className="wrapper-pill-primary" style={{ padding: '0.85rem 2rem', fontSize: '1rem' }}>
-              Get Started Free
-            </Link>
-            <Link to="/policies" className="wrapper-pill-secondary" style={{ padding: '0.85rem 2rem', fontSize: '1rem' }}>
-              Schedule Technical Demo
-            </Link>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>AI Decision Transparency</div>
+              <div className="text-xs text-muted">Audited recommendations with side-by-side matrices</div>
+            </div>
           </div>
         </div>
       </section>
@@ -1162,4 +818,3 @@ export function Home() {
     </div>
   );
 }
-export default Home;

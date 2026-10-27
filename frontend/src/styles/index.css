@@ -629,3 +629,211 @@ a {
   box-shadow: var(--shadow-lg);
   padding: 1.75rem;
 }
+
+/* ==========================================================================
+   E-Commerce Homepage Specific Components (Amazon & Flipkart style)
+   ========================================================================== */
+
+/* 1. Quick Category Navigation Ribbon */
+.category-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.25rem 0.75rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.category-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.category-pill:hover {
+  background-color: var(--color-surface-2);
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+}
+.category-pill.active {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  border-color: var(--color-primary);
+}
+
+/* 2. Hero Deals & Promo Carousel */
+.hero-carousel-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.hero-slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem 2rem;
+  min-height: 340px;
+  position: relative;
+  transition: all var(--transition-normal);
+}
+@media (min-width: 768px) {
+  .hero-slide {
+    flex-direction: row;
+    align-items: center;
+    padding: 3.5rem 3.5rem;
+    min-height: 380px;
+  }
+}
+
+.hero-slide-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.hero-carousel-dots {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(120, 120, 120, 0.35);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.carousel-dot.active {
+  width: 24px;
+  border-radius: 4px;
+  background-color: var(--color-primary);
+}
+
+/* 3. Deal Badges & Stock Meters */
+.deal-discount-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-danger);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.deal-timer-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.stock-meter-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background-color: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.stock-meter-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #F59E0B 0%, #EF4444 100%);
+  transition: width 0.4s ease;
+}
+
+/* 4. AI Shopping Concierge Spotlight Card */
+.ai-spotlight-card {
+  position: relative;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(124, 58, 237, 0.09) 50%, rgba(37, 99, 235, 0.05) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem;
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.06);
+  overflow: hidden;
+}
+
+.ai-chip-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+.ai-chip-prompt:hover {
+  border-color: #8B5CF6;
+  background-color: var(--color-surface-2);
+  color: #7C3AED;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+/* 5. Trust Proposition Grid */
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-fast);
+}
+.trust-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+}
+
